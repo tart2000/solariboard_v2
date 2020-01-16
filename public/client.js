@@ -10,17 +10,29 @@ const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Visit /message to publish";
 var lastID = 0;
+// id of last loaded message
+var lastLoadedId = 0;
+var index = 0;
 
 function setCurrentMessage(m) {
-  console.log("lastID=" + lastID);
-  currentMessage = m.dream;
-  lastID = m.id;
-  console.log("land now, astID=" + lastID);
+  // Last new message
+  if (lastID > lastLoadedId) {
+    index = 0;
+  } else {
+    index++;
+    lastID = m[index].id;
+    if (index >= m.length) {
+      index = 0;
+    }
+  }
+  currentMessage = m[index].dream;
+  lastID = m[index].id;
+  lastLoadedId = m[index].id;
 }
 
 //function getMessageList() {
 var getMessageList = function() {
-// request the dreams from our app's sqlite database
+  // request the dreams from our app's sqlite database
   fetch("/getDreams", {})
     .then(res => res.json())
     .then(response => {
@@ -31,10 +43,10 @@ var getMessageList = function() {
         });
       } else {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
-        setCurrentMessage(response[0]);
+        setCurrentMessage(response);
       }
     });
-}
+};
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id) => {

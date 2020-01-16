@@ -18,8 +18,7 @@
       // Screen size
       var cols = 18;
       var rows = 6;
-      // id of last loaded message
-      var lastLoadedId = 0;
+
 
       (function() {
         /*
@@ -63,10 +62,10 @@
 
         function loadBoard() {
           getMessageList();
-          if (lastLoadedId != lastID) {
+          //if (lastLoadedId != lastID) {
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
-            lastLoadedId = lastID;
-          }
+          //  lastLoadedId = lastID;
+          //}
         }
 
         setInterval(loadBoard, 10000);
