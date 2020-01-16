@@ -38,7 +38,44 @@
     });
 
     Board.start();
+    
+    // Test wordwrap 
+    var wordwrap = function(long_string, max_char){
 
+      var sum_length_of_words = function(word_array){
+        var out = 0;
+        if (word_array.length!=0){
+          for (var i=0; i<word_array.length; i++){
+            var word = word_array[i];
+            out = out + word.length;
+          }
+        };
+        return out;
+      }
+
+      var split_out = [[]];
+      var split_string = long_string.split(' ');
+      for (var i=0; i<split_string.length; i++){
+        var word = split_string[i];
+
+        if ((sum_length_of_words(split_out[split_out.length-1]) + word.length) > max_char){
+          split_out = split_out.concat([[]]);
+        }
+
+        split_out[split_out.length-1] = split_out[split_out.length-1].concat(word);
+      }
+
+      for (var i=0; i<split_out.length; i++){
+        split_out[i] = split_out[i].join(" ");
+      }
+
+      return split_out.join('",\n"');
+    };
+
+    var test_string = "What I am needing is to split up the string they input based on 27 characters yes always less than 27 words. View all";
+
+    console.log(wordwrap(test_string, cols));
+    
     // Set a message
     setTimeout(function () {
       Board.setMessage([

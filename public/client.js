@@ -88,8 +88,9 @@ dreamsList.querySelectorAll("#dreams button.close").addEventListener('click', ev
 var delFunction = function() {
   const data = { id: this.id };
   console.log(data);
-  fetch("/delMessage?id="+this.id, {
-    method: "GET",
+  fetch("/delMessage", {
+    method: "POST",
+    body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }
   })
     .then(res => res.json())

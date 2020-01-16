@@ -62,9 +62,19 @@ app.get("/getDreams", (request, response) => {
   });
 });
 
+/*
+// endpoint to get all the dreams in the database
+app.get("/getLastMessage", (request, response) => {
+  db.all("SELECT * from Dreams WHERE id = ", (err, rows) => {
+    response.send(JSON.stringify(rows));
+  });
+});
+
+*/
+
 // endpoint to add a dream to the database
 app.post("/addDream", (request, response) => {
-  console.log(`add to dreams ${request.body}`);
+  console.log(`add to dreams ${request.body.dream}`);
 
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
@@ -105,10 +115,11 @@ app.get("/clearDreams", (request, response) => {
 });
 
 // endpoint to clear a message from the database
-app.get("/delMessage", (request, response) => {
-  console.log(request.body);
-  //onst cleansedId = cleanseString(request.body.id);
-	//console.log("Deleting message #" + cleansedId);
+app.post("/delMessage", (request, response) => {
+  console.log(request.body.id);
+        db.run("DELETE FROM Dreams WHERE ID=?", request.body.id, error => {
+            console.log(`deleted row ${request.body.id}`);
+        });
 });
 
 // helper function that prevents html/css/script malice
