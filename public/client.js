@@ -106,6 +106,7 @@ var delFunction = function() {
   })
     .then(res => res.json())
     .then(response => {
+      this.parentNode.removeChild(this);
       getMessageList();
       console.log(JSON.stringify(response));
     });
