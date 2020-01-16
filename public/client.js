@@ -59,7 +59,7 @@ const appendNewDream = (dream, id, pubdate) => {
   var datElt = messageRow.querySelector("small");
   pTxt.textContent = dream;
   delBut.id = id;
-  datElt.title = pubdate;
+  datElt.title = pubdate.split(".")[0].replace(" ", "").replace("-", "");
   divList.appendChild(messageRow);
 
   // Adding a listener

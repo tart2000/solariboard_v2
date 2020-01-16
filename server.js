@@ -75,7 +75,7 @@ app.post("/addDream", (request, response) => {
       } else {
         console.log(`add to dreams ${request.body.dream}`);
         response.send({ message: "success" });
-        
+
       }
     });
   }
