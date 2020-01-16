@@ -40,7 +40,7 @@ var getMessageList = function() {
       // If we are on  the backoffice dreamsList exists, if not, not !
       if (dreamsList) {
         response.forEach(row => {
-          appendNewDream(row.dream, row.id);
+          appendNewDream(row.dream, row.id, row.pubdate);
         });
       } else {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
@@ -50,14 +50,16 @@ var getMessageList = function() {
 };
 
 // a helper function that creates a list item for a given dream
-const appendNewDream = (dream, id) => {
+const appendNewDream = (dream, id, pubdate) => {
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
   var pTxt = messageRow.querySelector("p"); // Insterting message text
   var delBut = messageRow.querySelector("button"); // Insterting message id
+  var datElt = messageRow.querySelector("small");
   pTxt.textContent = dream;
   delBut.id = id;
+  datElt.title = pubdate;
   divList.appendChild(messageRow);
 
   // Adding a listener
