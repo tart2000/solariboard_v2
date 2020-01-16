@@ -24,20 +24,17 @@ fetch("/getDreams", {})
 const appendNewDream = (dream, id) => {
   
   var template = document.querySelector("#messagerow");
-  console.log(template);
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
   var pTxt = messageRow.querySelector("p"); // Insterting message text
   var delBut = messageRow.querySelector("button"); // Insterting message id
   pTxt.textContent = dream;
   delBut.id = id;
-  
-  /*
-  const newListItem = document.createElement("div");
-  newListItem.innerText = dream;
-  dreamsList.appendChild(newListItem);
-  */
   divList.appendChild(messageRow);
+  
+  // Adding a listener
+  delBut.addEventListener('click', delFunction, false);
+
 };
 
 // listen for the form to be submitted and add a new dream when it is
@@ -74,13 +71,31 @@ clearButton.addEventListener('click', event => {
   dreamsList.innerHTML = "";
 });
 
+/*
 dreamsList.querySelectorAll("#dreams button.close").addEventListener('click', event => {
   console.log(this);
-  /*
+
   fetch("/delMessage", {id:this.id})
     .then(res => res.json())
     .then(response => {
       console.log("Delete message" + this.id);
     });
-    */
+    
 });
+
+*/
+
+var delFunction = function() {
+  const data = { id: this.id };
+  console.log(data);
+  fetch("/delMessage?id="+this.id, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  })
+    .then(res => res.json())
+    .then(response => {
+      console.log(JSON.stringify(response));
+    });
+};
+
+
