@@ -31,6 +31,8 @@ function setCurrentMessage(m) {
 
 //function getMessageList() {
 var getMessageList = function() {
+  // Suppress all the list
+  //dreamsList
   // request the dreams from our app's sqlite database
   fetch("/getDreams", {})
     .then(res => res.json())
@@ -76,12 +78,12 @@ dreamsForm.onsubmit = event => {
   })
     .then(res => res.json())
     .then(response => {
-      getMessageList();
     });
   // get dream value and add it to the list
   dreams.push(dreamInput.value);
-  appendNewDream(dreamInput.value);
-
+  //appendNewDream(dreamInput.value);
+  getMessageList();
+  
   // reset form
   dreamInput.value = "";
   dreamInput.focus();
@@ -99,7 +101,6 @@ clearButton.addEventListener("click", event => {
 var delFunction = function() {
   var divASupp = this.parentElement;
   dreamsList.removeChild(divASupp);
-  /*
   const data = { id: this.id };
   fetch("/delMessage", {
     method: "POST",
@@ -108,10 +109,8 @@ var delFunction = function() {
   })
     .then(res => res.json())
     .then(response => {
-      getMessageList();
       console.log(JSON.stringify(response));
     });
-    */
 };
 
 // Test wordwrap
