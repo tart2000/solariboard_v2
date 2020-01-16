@@ -2,7 +2,7 @@
 
     var templates = {
         prefix: "Il y a ",
-        suffix: " déjà...",
+        suffix: " ...",
         seconds: "à peine moins d'une minute",
         minute: "une petite minute, Bob,",
         minutes: "%d minutes",

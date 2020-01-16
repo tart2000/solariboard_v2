@@ -20,7 +20,7 @@ function setCurrentMessage(m) {
     index = 0;
   } else {
     index++;
-    if (index > m.length) {
+    if (index >= m.length) {
       index = 0;
     }
   }
@@ -60,12 +60,11 @@ const appendNewDream = (dream, id, pubdate) => {
   pTxt.textContent = dream;
   delBut.id = id;
   
-  console.log(pubdate);
-  //const regex = /-/gi;
   pubdate = pubdate.split(".")[0];
-  var d = pubdate.split(" ")[0];
-  var  = pubdate.split(" ")[0];
-  datElt.title = pubdate.split(".")[0]; //.replace(" ", "").replace(regex, '');
+  var d = pubdate.split(" ")[0]+"T";
+  const regex = /-/gi;
+  var h = pubdate.split(" ")[1].replace(regex, ":")+"Z";
+  datElt.title = d + h; //.replace(" ", "").replace(regex, '');
   divList.appendChild(messageRow);
 
   // Adding a listener
