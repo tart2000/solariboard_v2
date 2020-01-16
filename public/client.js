@@ -82,7 +82,6 @@ clearButton.addEventListener("click", event => {
 
 var delFunction = function() {
   const data = { id: this.id };
-  console.log(data);
   fetch("/delMessage", {
     method: "POST",
     body: JSON.stringify(data),
@@ -90,6 +89,7 @@ var delFunction = function() {
   })
     .then(res => res.json())
     .then(response => {
+      getMessageList();
       console.log(JSON.stringify(response));
     });
 };
