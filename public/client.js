@@ -16,15 +16,14 @@ fetch("/getDreams", {})
   .then(res => res.json())
   .then(response => {
     response.forEach(row => {
-      appendNewDream(row.dream);
+      appendNewDream(row.dream, row.id);
     });
   });
 
 // a helper function that creates a list item for a given dream
-const appendNewDream = dream => {
+const appendNewDream = (dream, id) => {
   const newListItem = document.createElement("div");
-  newListItem.addClass("");
-  newListItem.innerText = dream;
+  newListItem.innerText = dream + "  " + id;
   dreamsList.appendChild(newListItem);
 };
 
