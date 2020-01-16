@@ -15,7 +15,6 @@ var lastLoadedId = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
-   lastID = m[0].id;
   // Last new message
   if (lastID > lastLoadedId) {
     index = 0;
@@ -26,9 +25,8 @@ function setCurrentMessage(m) {
     }
   }
   currentMessage = m[index].dream;
+  lastID = m[index].id;
   lastLoadedId = m[index].id;
-    console.log("lastID=" + lastID);
-    console.log("m.lastLoadedId=" + lastLoadedId);
 }
 
 //function getMessageList() {
