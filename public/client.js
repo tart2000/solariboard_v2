@@ -20,8 +20,7 @@ function setCurrentMessage(m) {
     index = 0;
   } else {
     index++;
-    lastID = m[index].id;
-    if (index >= m.length) {
+    if (index > m.length) {
       index = 0;
     }
   }
@@ -98,6 +97,8 @@ clearButton.addEventListener("click", event => {
 });
 
 var delFunction = function() {
+  console.log(dreamsList);
+  /*
   const data = { id: this.id };
   fetch("/delMessage", {
     method: "POST",
@@ -106,10 +107,10 @@ var delFunction = function() {
   })
     .then(res => res.json())
     .then(response => {
-      this.parentNode.removeChild(this);
       getMessageList();
       console.log(JSON.stringify(response));
     });
+    */
 };
 
 // Test wordwrap
