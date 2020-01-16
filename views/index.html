@@ -1,49 +1,66 @@
-<!-- This is a static file -->
-<!-- served from your routes in server.js -->
+<!doctype html>
+<html>
+<head>
+  <title>Solari</title>
+</head>
+<body>
+	<div id="container">
+  </div>
+  <script src="/lib/underscore.js"></script>
+  <script src="/lib/Three.js"></script>
+  <script src="/lib/stats.js"></script>
+  <script src="/lib/events.js"></script>
+  <script src="/app/SolariTexture.js"></script>
+  <script src="/app/SolariRow.js"></script>
+  <script src="/app/SolariFlap.js"></script>
+  <script src="/app/Solari.js"></script>
+  <script>
+  (function () {
+  var board = window.Board = new Solari;
+  new SolariTexture().bind('load', function () {
+    var alphaSet = this,
+        row;
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Welcome to Solariboard !</title>
-    <meta name="description" content="A cool thing made with Glitch">
-    <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    document.getElementById('container').appendChild(board.el);
 
-    <!-- import the webpage's stylesheet -->
-    <link rel="stylesheet" href="/style.css">
-    
-    <!-- import the webpage's client-side javascript file -->
-    <script src="/client.js" defer></script>
-  </head>
-  <body>
-    <header>
-      <h1>
-        Leave a message to your love !
-      </h1>
-    </header>
+    // Set up the board
+    _(8).times(function () {
+      row = new SolariRow(board.y);
 
-    <main>
-      <p>Tell me your hmessage :</p>
-      
-      <form>
-        <input name="dream" aria-label="a new dream" type="text" maxlength="100" placeholder="Dear Love... I wanted to say to you ...">
-        <button type="submit" id="submit-dream">Submit Message</button>
-      </form>
-      
-      <section class="dreams">
-        <ul id="dreams"></ul>
-        <button id="clear-dreams">
-          Clear All messages
-        </button>
-      </section>
-      
-    </main>
+      _(24).times(function () {
+        row.add(alphaSet);
+      });
+      board.add(row);
+    });
 
-    <footer>
-      Made with <a href="https://glitch.com">Glitch</a>!
-    </footer>
+    Board.start();
 
-  </body>
+    // Set a message
+    setTimeout(function () {
+      Board.setMessage([
+        'THUNDÉRCATS THUNDERCATS ARE LOOSE THUNDERCATS ARE LOOSE',
+        'ARE ON THE MOVE',
+        'THUNDERCATS ARE LOOSE',
+        'FEEL THE MAGIC',
+        'HEAR THE ROAR',
+        'THUNDERCATS ARE LOOSE',
+        'THUNDER THUNDER THUNDER',
+        'THUNDERCATS HO'
+      ])
+    }, 2000);
+  }).load('https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579171572413', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# '.split(''), 70, 63);
+
+  })();
+  </script>
+  <style>
+  *{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+  }
+  body{
+    background:#111;
+  }
+  </style>
+</body>
 </html>

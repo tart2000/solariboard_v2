@@ -25,7 +25,7 @@ const db = new sqlite3.Database(dbFile);
 db.serialize(() => {
   if (!exists) {
     db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate DATETIME DEFAULT CURRENT_TIMESTAMP)" // 
+      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate DATETIME DEFAULT CURRENT_TIMESTAMP)" //
     );
     console.log("New table Dreams created!");
 
@@ -53,11 +53,6 @@ app.get("/", (request, response) => {
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/message", (request, response) => {
   response.sendFile(`${__dirname}/views/message.html`);
-});
-
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/front", (request, response) => {
-  response.sendFile(`${__dirname}/views/front.html`);
 });
 
 // endpoint to get all the dreams in the database
@@ -107,6 +102,11 @@ app.get("/clearDreams", (request, response) => {
       }
     );
   }
+});
+
+// endpoint to clear a message from the database
+app.get("/delMessage", (request, response) => {
+	console.log(request);
 });
 
 // helper function that prevents html/css/script malice
