@@ -5,7 +5,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-//const io = require('socket.io')(app);
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 const fs = require("fs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -74,7 +75,8 @@ app.post("/addDream", (request, response) => {
       if (error) {
         response.send({ message: "error!" });
       } else {
-        response.send({ message: "success" });
+        //response.send({ message: "success" });
+        
       }
     });
   }
@@ -122,4 +124,19 @@ const cleanseString = function(string) {
 // listen for requests :)
 var listener = app.listen(process.env.PORT, () => {
   console.log(`Your app is listening on port ${listener.address().port}`);
+});
+
+function getLastMessage() {
+    db.each(
+      "SELECT * from Dreams WHERE id in (SELECT max(id) from Dreams)",
+      (err, row) => {
+        console.log("row", row);
+        io.emit('last_message', row);
+      }
+    );
+  
+}
+
+io.on('connection', function (socket) {
+  
 });
