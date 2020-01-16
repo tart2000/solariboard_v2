@@ -9,9 +9,11 @@ const dreamInput = dreamsForm.elements["dream"];
 const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "This is a test string";
+var lastID = 0;
 
 function setCurrentMessage(m) {
-  currentMessage = m;
+  currentMessage = m.dream;
+  lastID = m.id;
 }
 
 function getMessageList() {
@@ -26,7 +28,7 @@ fetch("/getDreams", {})
       });
     } else {
       // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
-      setCurrentMessage(response[0].dream);
+      setCurrentMessage(response[0]);
     }
   });
 }

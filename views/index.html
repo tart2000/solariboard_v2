@@ -15,6 +15,12 @@
     <script src="/app/Solari.js"></script>
     <script src="/client.js" defer></script>
     <script>
+      // Screen size
+      var cols = 18;
+      var rows = 6;
+      // id of last loaded message
+      var lastLoadedId = 0;
+      
       (function() {
         var board = (window.Board = new Solari());
         new SolariTexture()
@@ -23,10 +29,6 @@
               row;
 
             document.getElementById("container").appendChild(board.el);
-
-            // Screen size
-            var cols = 18;
-            var rows = 6;
 
             // Set up the board
             _(rows).times(function() {
@@ -40,43 +42,45 @@
 
             Board.start();
 
-            // Test wordwrap
-            function wordWrap(str, charMax) {
-              let arr = [];
-              let space = /\s/;
-
-              const words = str.split(space);
-              // push first word into new array
-              if (words[0].length) {
-                arr.push(words[0]);
-              }
-
-              for (let i = 1; i < words.length; i++) {
-                if (words[i].length + arr[arr.length - 1].length < charMax) {
-                  arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i]}`;
-                } else {
-                  arr.push(words[i]);
-                }
-              }
-
-              //console.log('arr', arr);
-              return arr;
-            }
-
-            function loadBoard() {
-              console.log(currentMessage);
-              Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
-            }
-
             // Set a message
             setTimeout(loadBoard, 2000);
           })
           .load(
             "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579181671757",
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# \'()'.split(""),
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# '()".split(""),
             70,
             63
           );
+
+        // Test wordwrap
+        function wordWrap(str, charMax) {
+          let arr = [];
+          let space = /\s/;
+
+          const words = str.split(space);
+          // push first word into new array
+          if (words[0].length) {
+            arr.push(words[0]);
+          }
+
+          for (let i = 1; i < words.length; i++) {
+            if (words[i].length + arr[arr.length - 1].length < charMax) {
+              arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i]}`;
+            } else {
+              arr.push(words[i]);
+            }
+          }
+
+          //console.log('arr', arr);
+          return arr;
+        }
+
+        function loadBoard() {
+          
+          Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
+          lastLoadedId = lastID;
+        }
+        
       })();
     </script>
     <style>
