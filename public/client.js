@@ -59,8 +59,13 @@ const appendNewDream = (dream, id, pubdate) => {
   var datElt = messageRow.querySelector("small");
   pTxt.textContent = dream;
   delBut.id = id;
-  const regex = /-/gi;
-  datElt.title = pubdate.split(".")[0].replace(" ", "").replace(regex, '');
+  
+  console.log(pubdate);
+  //const regex = /-/gi;
+  pubdate = pubdate.split(".")[0];
+  var d = pubdate.split(" ")[0];
+  var  = pubdate.split(" ")[0];
+  datElt.title = pubdate.split(".")[0]; //.replace(" ", "").replace(regex, '');
   divList.appendChild(messageRow);
 
   // Adding a listener

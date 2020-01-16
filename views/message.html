@@ -1,35 +1,58 @@
 <!DOCTYPE html>
 <head>
   <title>Messages</title>
-  <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <link rel="stylesheet" href="/message.css">
+  <link
+    id="favicon"
+    rel="icon"
+    href="https://glitch.com/edit/favicon-app.ico"
+    type="image/x-icon"
+  />
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous"
+  />
+  <link rel="stylesheet" href="/message.css" />
   <script src="/client.js" defer></script>
-  <script src="/timetogo.js" defer></script>
 </head>
 
 <body>
   <div class="container pt-5 pb-5">
-    
     <!-- form to fill messages -->
     <form class="pb-5">
       <div class="form-group">
-        <label for="exampleFormControlTextarea1">Tapez ci-dessous le message que vous souhaitez afficher sur l'écran</label>
-        <textarea name="dream" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-        <small id="emailHelp" class="form-text text-muted">Attention, des enfants peuvent regarder ;)</small>
+        <label for="exampleFormControlTextarea1"
+          >Tapez ci-dessous le message que vous souhaitez afficher sur
+          l'écran</label
+        >
+        <textarea
+          name="dream"
+          class="form-control"
+          id="exampleFormControlTextarea1"
+          rows="3"
+        ></textarea>
+        <small id="emailHelp" class="form-text text-muted"
+          >Attention, des enfants peuvent regarder ;)</small
+        >
       </div>
       <div class="form-group form-check">
-        <input name="keepit" type="checkbox" class="form-check-input" id="exampleCheck1">
+        <input
+          name="keepit"
+          type="checkbox"
+          class="form-check-input"
+          id="exampleCheck1"
+        />
         <label class="form-check-label" for="exampleCheck1">garder 24h</label>
       </div>
       <button type="submit" class="btn btn-primary">Envoyer</button>
     </form>
 
-    <hr>
-    
+    <hr />
+
     <!-- list of messages to keep or erase -->
     <h2 class="pt-5 mb-3">
       Messages en mémoire
@@ -37,26 +60,31 @@
 
     <div class="dreams">
       <div id="dreams">
-          <!-- Inserer les lignes avec le template (voir bas de page) avec le client -->       
+        <!-- Inserer les lignes avec le template (voir bas de page) avec le client -->
       </div>
-      
+
       <!-- button to erase all old messages -->
-      <a href="#" class="btn btn-danger btn-outline" id="clear-dreams">Tout effacer</a>
+      <a href="#" class="btn btn-danger btn-outline" id="clear-dreams"
+        >Tout effacer</a
+      >
     </div>
-  
   </div>
-  
+
   <!-- Le template utilisé pour pousser le contenu -->
   <template id="messagerow">
     <div class="alert alert-secondary alert-dismissible fade show" role="alert">
-      <p>
-        
-      </p>
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <p></p>
+      <button
+        type="button"
+        class="close"
+        data-dismiss="alert"
+        aria-label="Close"
+      >
         <span aria-hidden="true">&times;</span>
       </button>
-      <small class="timeago" ></small>
-    </div>  
- </template> 
-  
+      <small class="timeago"></small>
+    </div>
+  </template>
+
+  <script src="/timetogo.js" defer></script>
 </body>

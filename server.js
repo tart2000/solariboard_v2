@@ -32,7 +32,7 @@ db.serialize(() => {
     // insert default dreams
     db.serialize(() => {
       db.run(
-        "INSERT INTO Dreams (dream, pubdate) VALUES ('Visite /message to publish messages !', strftime('%Y-%m-%d %H-%M-%f','now'))"
+        "INSERT INTO Dreams (dream, pubdate) VALUES ('Visit /message to publish messages !', strftime('%Y-%m-%d %H-%M-%f','now'))"
       );
     });
   } else {
