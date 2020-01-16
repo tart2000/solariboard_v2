@@ -1,4 +1,9 @@
-# hello-sqlite
+# Solariboard
+
+Simple project to diplay messages on an airport-like display. 
+
+
+-------
 
 A starter that has a database
 

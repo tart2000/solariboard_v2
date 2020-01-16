@@ -25,19 +25,19 @@ const db = new sqlite3.Database(dbFile);
 db.serialize(() => {
   if (!exists) {
     db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT)"
+      "CREATE TABLE Messages (id INTEGER PRIMARY KEY AUTOINCREMENT, txt TEXT)"
     );
-    console.log("New table Dreams created!");
+    console.log("New table Messages created!");
 
     // insert default dreams
     db.serialize(() => {
       db.run(
-        'INSERT INTO Dreams (dream) VALUES ("Find and count some sheep"), ("Climb a really tall mountain"), ("Wash the dishes")'
+        'INSERT INTO Messages (txt) VALUES ("Find and count some sheep"), ("Climb a really tall mountain"), ("Wash the dishes")'
       );
     });
   } else {
-    console.log('Database "Dreams" ready to go!');
-    db.each("SELECT * from Dreams", (err, row) => {
+    console.log('Database "Messages" ready to go!');
+    db.each("SELECT * from Messages", (err, row) => {
       if (row) {
         console.log(`record: ${row.dream}`);
       }
@@ -50,21 +50,26 @@ app.get("/", (request, response) => {
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
+// http://expressjs.com/en/starter/basic-routing.html
+app.get("/message", (request, response) => {
+  response.sendFile(`${__dirname}/views/message.html`);
+});  
+
 // endpoint to get all the dreams in the database
 app.get("/getDreams", (request, response) => {
-  db.all("SELECT * from Dreams", (err, rows) => {
+  db.all("SELECT * from Messages", (err, rows) => {
     response.send(JSON.stringify(rows));
   });
 });
 
 // endpoint to add a dream to the database
 app.post("/addDream", (request, response) => {
-  console.log(`add to dreams ${request.body}`);
+  console.log(`add to Messages ${request.body}`);
 
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     const cleansedDream = cleanseString(request.body.dream);
-    db.run(`INSERT INTO Dreams (dream) VALUES (?)`, cleansedDream, error => {
+    db.run(`INSERT INTO Messages (txt) VALUES (?)`, cleansedDream, error => {
       if (error) {
         response.send({ message: "error!" });
       } else {
@@ -79,10 +84,10 @@ app.get("/clearDreams", (request, response) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     db.each(
-      "SELECT * from Dreams",
+      "SELECT * from Messages",
       (err, row) => {
         console.log("row", row);
-        db.run(`DELETE FROM Dreams WHERE ID=?`, row.id, error => {
+        db.run(`DELETE FROM Messages WHERE ID=?`, row.id, error => {
           if (row) {
             console.log(`deleted row ${row.id}`);
           }
