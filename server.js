@@ -25,7 +25,7 @@ const db = new sqlite3.Database(dbFile);
 db.serialize(() => {
   if (!exists) {
     db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT)" // pubdate DATETIME DEFAULT CURRENT_TIMESTAMP
+      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate DATETIME DEFAULT CURRENT_TIMESTAMP)" // 
     );
     console.log("New table Dreams created!");
 
@@ -39,7 +39,7 @@ db.serialize(() => {
     console.log('Database "Dreams" ready to go!');
     db.each("SELECT * from Dreams ", (err, row) => {
       if (row) {
-        console.log(`record: ${row.dream}`);
+        console.log(row);
       }
     });
   }

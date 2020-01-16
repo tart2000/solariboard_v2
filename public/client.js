@@ -24,12 +24,13 @@ fetch("/getDreams", {})
 const appendNewDream = (dream, id) => {
   
   var template = document.querySelector("#messagerow");
+  console.log(template);
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
   var pTxt = messageRow.querySelector("p"); // Insterting message text
-  var aSupp = messageRow.querySelector("a"); // Insterting message id
+  var delBut = messageRow.querySelector("a"); // Insterting message id
   pTxt.textContent = dream;
-  aSupp.id = id;
+  delBut.id = id;
   
   /*
   const newListItem = document.createElement("div");
