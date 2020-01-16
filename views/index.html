@@ -85,11 +85,16 @@
         }
 
         function loadBoard() {
+          console.log("loadBoard...");
+          //Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
           lastLoadedId = lastID;
         }
+        
+        
       })();
     </script>
+    
     <style>
       * {
         margin: 0;
