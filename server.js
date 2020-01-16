@@ -32,7 +32,7 @@ db.serialize(() => {
     // insert default dreams
     db.serialize(() => {
       db.run(
-        'INSERT INTO Dreams (dream) VALUES ("Find and count some sheep"), ("Climb a really tall mountain"), ("Wash the dishes")'
+        'INSERT INTO Dreams (dream, now) VALUES ("Visite //message to publish messages !")'
       );
     });
   } else {
@@ -69,7 +69,7 @@ app.post("/addDream", (request, response) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     const cleansedDream = cleanseString(request.body.dream);
-    db.run("INSERT INTO Dreams (dream) VALUES (?)", cleansedDream, error => {
+    db.run("INSERT INTO Dreams (dream, now) VALUES (?)", cleansedDream, error => {
       if (error) {
         response.send({ message: "error!" });
       } else {
@@ -123,14 +123,3 @@ const cleanseString = function(string) {
 var listener = app.listen(process.env.PORT, () => {
   console.log(`Your app is listening on port ${listener.address().port}`);
 });
-
-function getLastMessage() {
-    db.each(
-      "SELECT * from Dreams WHERE id in (SELECT max(id) from Dreams)",
-      (err, row) => {
-        console.log("row", row);
-        io.emit('last_message', row);
-      }
-    );
-  
-}

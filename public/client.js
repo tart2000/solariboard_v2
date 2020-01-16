@@ -32,7 +32,7 @@ function setCurrentMessage(m) {
 //function getMessageList() {
 var getMessageList = function() {
   // Suppress all the list
-  //dreamsList
+  if (dreamsList) dreamsList.innerHTML = "";
   // request the dreams from our app's sqlite database
   fetch("/getDreams", {})
     .then(res => res.json())
