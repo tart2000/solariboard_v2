@@ -12,25 +12,28 @@ var currentMessage = "Visit /message to publish";
 var lastID = 0;
 
 function setCurrentMessage(m) {
+  console.log("lastID=" + lastID);
   currentMessage = m.dream;
   lastID = m.id;
+  console.log("land now, astID=" + lastID);
 }
 
-function getMessageList() {
+//function getMessageList() {
+var getMessageList = function() {
 // request the dreams from our app's sqlite database
-fetch("/getDreams", {})
-  .then(res => res.json())
-  .then(response => {
-    // If we are on  the backoffice dreamsList exists, if not, not !
-    if (dreamsList) {
-      response.forEach(row => {
-        appendNewDream(row.dream, row.id);
-      });
-    } else {
-      // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
-      setCurrentMessage(response[0]);
-    }
-  });
+  fetch("/getDreams", {})
+    .then(res => res.json())
+    .then(response => {
+      // If we are on  the backoffice dreamsList exists, if not, not !
+      if (dreamsList) {
+        response.forEach(row => {
+          appendNewDream(row.dream, row.id);
+        });
+      } else {
+        // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
+        setCurrentMessage(response[0]);
+      }
+    });
 }
 
 // a helper function that creates a list item for a given dream
@@ -95,5 +98,28 @@ var delFunction = function() {
       console.log(JSON.stringify(response));
     });
 };
+
+// Test wordwrap
+function wordWrap(str, charMax) {
+  let arr = [];
+  let space = /\s/;
+
+  const words = str.split(space);
+  // push first word into new array
+  if (words[0].length) {
+    arr.push(words[0]);
+  }
+
+  for (let i = 1; i < words.length; i++) {
+    if (words[i].length + arr[arr.length - 1].length < charMax) {
+      arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i]}`;
+    } else {
+      arr.push(words[i]);
+    }
+  }
+
+  //console.log('arr', arr);
+  return arr;
+}
 
 getMessageList();
