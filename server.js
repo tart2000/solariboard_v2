@@ -25,18 +25,19 @@ const db = new sqlite3.Database(dbFile);
 db.serialize(() => {
   if (!exists) {
     db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT)"
+      "CREATE TABLE SBMessages (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, )"
     );
-    console.log("New table Dreams created!");
+    console.log("New table SBMessages created!");
 
     // insert default dreams
     db.serialize(() => {
       db.run(
-        'INSERT INTO Dreams (dream) VALUES ("FHello ! Welcome on SolariBoard !");'
+        'INSERT INTO SBMessages (message) VALUES ("Hello ! Welcome on SolariBoard !")'
+      );
     });
   } else {
-    console.log('Database "Dreams" ready to go!');
-    db.each("SELECT * from Dreams ", (err, row) => {
+    console.log('Database "SBMessages" ready to go!');
+    db.each("SELECT * from SBMessages ", (err, row) => {
       if (row) {
         console.log(`record: ${row.dream}`);
       }
@@ -56,7 +57,7 @@ app.get("/message", (request, response) => {
 
 // endpoint to get all the dreams in the database
 app.get("/getDreams", (request, response) => {
-  db.all("SELECT * from Dreams order by id DESC", (err, rows) => {
+  db.all("SELECT * from SBMessages order by id DESC", (err, rows) => {
     response.send(JSON.stringify(rows));
   });
 });
@@ -68,7 +69,7 @@ app.post("/addDream", (request, response) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     const cleansedDream = cleanseString(request.body.dream);
-    db.run("INSERT INTO Dreams (dream) VALUES (?)", cleansedDream, error => {
+    db.run("INSERT INTO SBMessages (message) VALUES (?)", cleansedDream, error => {
       if (error) {
         response.send({ message: "error!" });
       } else {
@@ -83,10 +84,10 @@ app.get("/clearDreams", (request, response) => {
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     db.each(
-      "SELECT * from Dreams",
+      "SELECT * from SBMessages",
       (err, row) => {
         console.log("row", row);
-        db.run("DELETE FROM Dreams WHERE ID=?", row.id, error => {
+        db.run("DELETE FROM SBMessages WHERE ID=?", row.id, error => {
           if (row) {
             console.log(`deleted row ${row.id}`);
           }
