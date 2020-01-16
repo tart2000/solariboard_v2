@@ -6,6 +6,13 @@ Simple project to diplay messages on an airport-like display.
 
 The front is based on the project [Solariboard](https://github.com/carlmw/SolariBoard) by Carlmw on Github.  
 
+It uses a text-wrapping function to make sure the words aren't cut in the middle. 
+
+## What does it do?
+
+- It shows messages 
+- The page /message allows you to add new messages and delete previous ones 
+
 
 ## Made with [Glitch](https://glitch.com/)
 

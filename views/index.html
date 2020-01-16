@@ -62,15 +62,14 @@
           );
 
         function loadBoard() {
-          console.log(currentMessage);
           getMessageList();
-          console.log(currentMessage);
-          //Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
+          if (lastLoadedId != lastID) {
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
-          lastLoadedId = lastID;
+            lastLoadedId = lastID;
+          }
         }
 
-        setInterval(loadBoard, 30000);
+        setInterval(loadBoard, 10000);
       })();
     </script>
 
