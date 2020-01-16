@@ -1,8 +1,6 @@
 // client-side js
 // run by the browser each time your view template referencing it is loaded
 
-console.log("hello world :o");
-
 const dreams = [];
 
 // define variables that reference elements on our page
@@ -16,7 +14,7 @@ function setCurrentMessage(m) {
   currentMessage = m;
 }
 
-
+function getMessageList() {
 // request the dreams from our app's sqlite database
 fetch("/getDreams", {})
   .then(res => res.json())
@@ -31,6 +29,7 @@ fetch("/getDreams", {})
       setCurrentMessage(response[0].dream);
     }
   });
+}
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id) => {
@@ -61,7 +60,7 @@ dreamsForm.onsubmit = event => {
   })
     .then(res => res.json())
     .then(response => {
-      console.log(JSON.stringify(response));
+      getMessageList();
     });
   // get dream value and add it to the list
   dreams.push(dreamInput.value);
@@ -94,3 +93,5 @@ var delFunction = function() {
       console.log(JSON.stringify(response));
     });
 };
+
+getMessageList();
