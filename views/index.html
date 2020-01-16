@@ -4,6 +4,10 @@
     <title>Solari</title>
   </head>
   <body>
+    <div id="screen">
+      <div id="link">Pour publier ou modérer des messages, rdv sur http://solariboard.glitch.me/message</div>
+    </div>
+    
     <div id="container"></div>
     <script src="/lib/underscore.js"></script>
     <script src="/lib/Three.js"></script>
@@ -80,6 +84,19 @@
       }
       body {
         background: #111;
+        width:100%;
+      }
+      #screen {
+        width: 100vw; 
+        height: 100vh;
+        position: relative;
+      }
+      #link {
+        position: absolute; 
+        color: white; 
+        text-align: center;
+        width: 100%; 
+        bottom: 0px;
       }
     </style>
     <form></form>
