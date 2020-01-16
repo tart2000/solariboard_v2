@@ -23,11 +23,15 @@
 
     document.getElementById('container').appendChild(board.el);
 
+    // Screen size 
+    var cols= 24;
+    var rows = 8;
+    
     // Set up the board
-    _(8).times(function () {
+    _(rows).times(function () {
       row = new SolariRow(board.y);
 
-      _(24).times(function () {
+      _(cols).times(function () {
         row.add(alphaSet);
       });
       board.add(row);

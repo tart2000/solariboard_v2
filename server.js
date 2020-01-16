@@ -106,7 +106,9 @@ app.get("/clearDreams", (request, response) => {
 
 // endpoint to clear a message from the database
 app.get("/delMessage", (request, response) => {
-	console.log(request);
+  console.log(request.body);
+  //onst cleansedId = cleanseString(request.body.id);
+	//console.log("Deleting message #" + cleansedId);
 });
 
 // helper function that prevents html/css/script malice
