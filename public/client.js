@@ -97,7 +97,8 @@ clearButton.addEventListener("click", event => {
 });
 
 var delFunction = function() {
-  console.log(dreamsList);
+  var divASupp = this.parentElement;
+  dreamsList.removeChild(divASupp);
   /*
   const data = { id: this.id };
   fetch("/delMessage", {

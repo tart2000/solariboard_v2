@@ -47,9 +47,9 @@ var Solari = function () {
   this.pointLight = new THREE.PointLight(0xFFFFFF);
   this.ambientLight = new THREE.AmbientLight(0x333333);
 
-  this.pointLight.position.x = 1000;
-  this.pointLight.position.y = -800;
-  this.pointLight.position.z = 300;
+  this.pointLight.position.x = 800;
+  this.pointLight.position.y = 500;
+  this.pointLight.position.z = 1000;
 
   this.scene.add(this.pointLight);
   this.scene.add(this.ambientLight);
