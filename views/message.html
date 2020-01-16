@@ -31,34 +31,31 @@
     
     <!-- list of messages to keep or erase -->
     <h2>
-      Messages
+      Messages en mémoire
     </h2>
     
-    <!-- Insert loop here -->
+
     <div class="dreams">
     <div id="dreams">
-            <!-- Inserer les lignes avec le template -->       
+        <!-- Inserer les lignes avec le template (voir bas de page) avec le client -->       
     </div>
     
     <a href="#" class="btn btn-danger btn-outline" id="clear-dreams">Tout effacer</a>
     </div>
-    
-    <!-- link to message board -->
-    
-    <a href="">Voir le résultat</a>
   
   </div>
   
   
   <template id="messagerow">
-    <div class="card mb-2">
-      <div class="card-body">
-        <p>
-          This is a text message within a card body.
-        </p>
-        <a href="#">&#128465;</a> <small class="ml-2">Il y a 2 jours</small>
-      </div>
-    </div>
-    
+    <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+      <p>
+        
+      </p>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <small>Il y a 2 jours</small>
+    </div>    
  </template> 
+  
 </body>

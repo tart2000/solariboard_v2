@@ -26,9 +26,10 @@ const appendNewDream = (dream, id) => {
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
-  var p = messageRow.querySelector("p"); // Insterting message text
+  var pTxt = messageRow.querySelector("p"); // Insterting message text
   var aSupp = messageRow.querySelector("a"); // Insterting message id
-  p.textContent = dream;
+  pTxt.textContent = dream;
+  aSupp.id = id;
   
   /*
   const newListItem = document.createElement("div");
