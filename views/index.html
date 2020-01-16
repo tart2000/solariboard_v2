@@ -17,6 +17,7 @@
   <script src="/client.js" defer></script>
   <script>
   (function () {
+  var currentMessage = "";
   var board = window.Board = new Solari;
   new SolariTexture().bind('load', function () {
     var alphaSet = this,
@@ -40,32 +41,6 @@
 
     Board.start();
     
-    // Test wordwrap 
-     function wordWrap(str, charMax) {
-        let arr = [];
-        let space = /\s/;
-
-        const words = str.split(space);
-        // push first word into new array
-        if (words[0].length) {
-            arr.push(words[0]);
-        }
-
-        for (let i = 1; i < words.length; i++) {
-            if (words[i].length + arr[arr.length - 1].length < charMax) {
-                arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i
-                ]}`;
-            } else {
-                arr.push(words[i]);
-            }
-        }
-
-        //console.log('arr', arr);
-        return arr;
-    }
-
-    var test_string = "What I am needing is to split up the string they input based on 27 characters yes always less than 27 words. View all";
-    
     // Set a message
     setTimeout(function () {
       Board.setMessage(wordWrap(currentMessage.toUpperCase(),cols))
@@ -84,5 +59,8 @@
     background:#111;
   }
   </style>
+  <form>
+  </form>
+  <a href="#" id="clear-dreams"></a>
 </body>
 </html>
