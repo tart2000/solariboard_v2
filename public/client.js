@@ -9,20 +9,26 @@ const dreams = [];
 const dreamsForm = document.forms[0];
 const dreamInput = dreamsForm.elements["dream"];
 const dreamsList = document.getElementById("dreams");
-const clearButton = document.querySelector('#clear-dreams');
+const clearButton = document.querySelector("#clear-dreams");
+var currentMessage = "";
 
 // request the dreams from our app's sqlite database
 fetch("/getDreams", {})
   .then(res => res.json())
   .then(response => {
-    response.forEach(row => {
-      appendNewDream(row.dream, row.id);
-    });
+    // If we are on  the backoffice dreamsList exists, if not, not !
+    if (dreamsList) {
+      response.forEach(row => {
+        appendNewDream(row.dream, row.id);
+      });
+    } else {
+      // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
+      currentMessage = response[0].dream;
+    }
   });
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id) => {
-  
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
@@ -31,10 +37,9 @@ const appendNewDream = (dream, id) => {
   pTxt.textContent = dream;
   delBut.id = id;
   divList.appendChild(messageRow);
-  
-  // Adding a listener
-  delBut.addEventListener('click', delFunction, false);
 
+  // Adding a listener
+  delBut.addEventListener("click", delFunction, false);
 };
 
 // listen for the form to be submitted and add a new dream when it is
@@ -62,7 +67,7 @@ dreamsForm.onsubmit = event => {
   dreamInput.focus();
 };
 
-clearButton.addEventListener('click', event => {
+clearButton.addEventListener("click", event => {
   fetch("/clearDreams", {})
     .then(res => res.json())
     .then(response => {
@@ -70,20 +75,6 @@ clearButton.addEventListener('click', event => {
     });
   dreamsList.innerHTML = "";
 });
-
-/*
-dreamsList.querySelectorAll("#dreams button.close").addEventListener('click', event => {
-  console.log(this);
-
-  fetch("/delMessage", {id:this.id})
-    .then(res => res.json())
-    .then(response => {
-      console.log("Delete message" + this.id);
-    });
-    
-});
-
-*/
 
 var delFunction = function() {
   const data = { id: this.id };
@@ -98,5 +89,3 @@ var delFunction = function() {
       console.log(JSON.stringify(response));
     });
 };
-
-

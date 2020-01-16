@@ -62,16 +62,6 @@ app.get("/getDreams", (request, response) => {
   });
 });
 
-/*
-// endpoint to get all the dreams in the database
-app.get("/getLastMessage", (request, response) => {
-  db.all("SELECT * from Dreams WHERE id = ", (err, rows) => {
-    response.send(JSON.stringify(rows));
-  });
-});
-
-*/
-
 // endpoint to add a dream to the database
 app.post("/addDream", (request, response) => {
   console.log(`add to dreams ${request.body.dream}`);

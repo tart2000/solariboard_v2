@@ -14,6 +14,7 @@
   <script src="/app/SolariRow.js"></script>
   <script src="/app/SolariFlap.js"></script>
   <script src="/app/Solari.js"></script>
+  <script src="/client.js" defer></script>
   <script>
   (function () {
   var board = window.Board = new Solari;
@@ -40,54 +41,34 @@
     Board.start();
     
     // Test wordwrap 
-    var wordwrap = function(long_string, max_char){
+     function wordWrap(str, charMax) {
+        let arr = [];
+        let space = /\s/;
 
-      var sum_length_of_words = function(word_array){
-        var out = 0;
-        if (word_array.length!=0){
-          for (var i=0; i<word_array.length; i++){
-            var word = word_array[i];
-            out = out + word.length;
-          }
-        };
-        return out;
-      }
-
-      var split_out = [[]];
-      var split_string = long_string.split(' ');
-      for (var i=0; i<split_string.length; i++){
-        var word = split_string[i];
-
-        if ((sum_length_of_words(split_out[split_out.length-1]) + word.length) > max_char){
-          split_out = split_out.concat([[]]);
+        const words = str.split(space);
+        // push first word into new array
+        if (words[0].length) {
+            arr.push(words[0]);
         }
 
-        split_out[split_out.length-1] = split_out[split_out.length-1].concat(word);
-      }
+        for (let i = 1; i < words.length; i++) {
+            if (words[i].length + arr[arr.length - 1].length < charMax) {
+                arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i
+                ]}`;
+            } else {
+                arr.push(words[i]);
+            }
+        }
 
-      for (var i=0; i<split_out.length; i++){
-        split_out[i] = split_out[i].join(" ");
-      }
-
-      return split_out.join('",\n"');
-    };
+        //console.log('arr', arr);
+        return arr;
+    }
 
     var test_string = "What I am needing is to split up the string they input based on 27 characters yes always less than 27 words. View all";
-
-    console.log(wordwrap(test_string, cols));
     
     // Set a message
     setTimeout(function () {
-      Board.setMessage([
-        'THUNDÉRCATS THUNDERCATS ARE LOOSE THUNDERCATS ARE LOOSE',
-        'ARE ON THE MOVE',
-        'THUNDERCATS ARE LOOSE',
-        'FEEL THE MAGIC',
-        'HEAR THE ROAR',
-        'THUNDERCATS ARE LOOSE',
-        'THUNDER THUNDER THUNDER',
-        'THUNDERCATS HO'
-      ])
+      Board.setMessage(wordWrap(currentMessage.toUpperCase(),cols))
     }, 2000);
   }).load('https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579171572413', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# '.split(''), 70, 63);
 
