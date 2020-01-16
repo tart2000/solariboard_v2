@@ -13,6 +13,7 @@
     <script src="/app/SolariRow.js"></script>
     <script src="/app/SolariFlap.js"></script>
     <script src="/app/Solari.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/client.js" defer></script>
     <script>
       // Screen size
@@ -20,7 +21,8 @@
       var rows = 6;
       // id of last loaded message
       var lastLoadedId = 0;
-      
+      var socket = io.connect("https://solariboard.glitch.me:3000");
+
       (function() {
         var board = (window.Board = new Solari());
         new SolariTexture()
@@ -46,8 +48,10 @@
             setTimeout(loadBoard, 2000);
           })
           .load(
-            "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579183741332",
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# ;(),\':?!+/=@&*$\"°É£%À".split(""),
+            "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579184173508",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# ;(),':?!+/=@&€*$\"°É£%À<>[]{}~".split(
+              ""
+            ),
             70,
             63
           );
@@ -76,10 +80,13 @@
         }
 
         function loadBoard() {
-          
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
           lastLoadedId = lastID;
         }
+
+        socket.on("last_message", function(data) {
+          console.log(data);
+        });
         
       })();
     </script>
