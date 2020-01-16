@@ -25,14 +25,14 @@ const db = new sqlite3.Database(dbFile);
 db.serialize(() => {
   if (!exists) {
     db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate DATETIME DEFAULT CURRENT_TIMESTAMP)" //
+      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate TEXT)" //
     );
     console.log("New table Dreams created!");
 
     // insert default dreams
     db.serialize(() => {
       db.run(
-        'INSERT INTO Dreams (dream, now) VALUES ("Visite //message to publish messages !")'
+        "INSERT INTO Dreams (dream, pubdate) VALUES ('Visite //message to publish messages !', strftime('%Y-%m-%d %H-%M-%f','now'))"
       );
     });
   } else {
@@ -64,16 +64,17 @@ app.get("/getDreams", (request, response) => {
 
 // endpoint to add a dream to the database
 app.post("/addDream", (request, response) => {
-  console.log(`add to dreams ${request.body.dream}`);
 
   // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
   if (!process.env.DISALLOW_WRITE) {
     const cleansedDream = cleanseString(request.body.dream);
-    db.run("INSERT INTO Dreams (dream, now) VALUES (?)", cleansedDream, error => {
+    db.run("INSERT INTO Dreams (dream, pubdate) VALUES (?, strftime('%Y-%m-%d %H-%M-%f','now'))", cleansedDream, error => {
       if (error) {
+        console.log(error);
         response.send({ message: "error!" });
       } else {
-        //response.send({ message: "success" });
+        console.log(`add to dreams ${request.body.dream}`);
+        response.send({ message: "success" });
         
       }
     });
