@@ -5,8 +5,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-var server = require('http').Server(app);
-const io = require('socket.io')(server);
 const fs = require("fs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -136,7 +134,3 @@ function getLastMessage() {
     );
   
 }
-
-io.on('connection', function (socket) {
-  
-});

@@ -13,7 +13,6 @@
     <script src="/app/SolariRow.js"></script>
     <script src="/app/SolariFlap.js"></script>
     <script src="/app/Solari.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
     <script src="/client.js" defer></script>
     <script>
       // Screen size
@@ -21,9 +20,15 @@
       var rows = 6;
       // id of last loaded message
       var lastLoadedId = 0;
-      var socket = io.connect("https://solariboard.glitch.me:3000");
 
       (function() {
+        /*
+        var socket = io.connect("https://solariboard.glitch.me", 3000);
+        socket.on("last_message", function(data) {
+          console.log(data);
+        });
+        */
+
         var board = (window.Board = new Solari());
         new SolariTexture()
           .bind("load", function() {
@@ -83,11 +88,6 @@
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
           lastLoadedId = lastID;
         }
-
-        socket.on("last_message", function(data) {
-          console.log(data);
-        });
-        
       })();
     </script>
     <style>
