@@ -1,9 +1,3 @@
 /* styles */
 /* called by your view template */
 
-#dreams>* {
-  border: 1px #efefef solid;
-  border-radius: 5px; 
-  padding: 10px; 
-  margin-bottom: 1rem;
-}

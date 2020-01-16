@@ -14,10 +14,9 @@
   <div class="container pt-5">
     
     <!-- form to fill messages -->
-    Tapez ci-dessous le message de votre choix
     <form class="pb-5">
       <div class="form-group">
-        <label for="exampleFormControlTextarea1">Example textarea</label>
+        <label for="exampleFormControlTextarea1">Tapez ci-dessous le message de votre choix</label>
         <textarea name="dream" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
         <small id="emailHelp" class="form-text text-muted">120/240 caractères</small>
       </div>
@@ -37,20 +36,29 @@
     
     <!-- Insert loop here -->
     <div class="dreams">
-      <div id="dreams" class="mb-3 mt-3">
-
-      </div>
+    <div id="dreams">
+            <!-- Inserer les lignes avec le template -->       
+    </div>
     
     <a href="#" class="btn btn-danger btn-outline" id="clear-dreams">Tout effacer</a>
     </div>
-    <hr>
     
     <!-- link to message board -->
+    
+    <a href="">Voir le résultat</a>
   
   </div>
   
   
-  <template id="productrow">
-  <div 
-</template> 
+  <template id="messagerow">
+    <div class="card mb-2">
+      <div class="card-body">
+        <p>
+          This is a text message within a card body.
+        </p>
+        <a href="#">&#128465;</a> <small class="ml-2">Il y a 2 jours</small>
+      </div>
+    </div>
+    
+ </template> 
 </body>

@@ -22,9 +22,20 @@ fetch("/getDreams", {})
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id) => {
+  
+  var template = document.querySelector("#messagerow");
+  var divList = document.querySelector("#dreams"); // Insert point of the template
+  var messageRow = document.importNode(template.content, true);
+  var p = messageRow.querySelector("p"); // Insterting message text
+  var aSupp = messageRow.querySelector("a"); // Insterting message id
+  p.textContent = dream;
+  
+  /*
   const newListItem = document.createElement("div");
-  newListItem.innerText = dream + "  " + id;
+  newListItem.innerText = dream;
   dreamsList.appendChild(newListItem);
+  */
+  divList.appendChild(messageRow);
 };
 
 // listen for the form to be submitted and add a new dream when it is
