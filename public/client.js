@@ -10,7 +10,6 @@ const dreamsForm = document.forms[0];
 const dreamInput = dreamsForm.elements["dream"];
 const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector('#clear-dreams');
-
 // request the dreams from our app's sqlite database
 fetch("/getDreams", {})
   .then(res => res.json())
@@ -73,3 +72,16 @@ clearButton.addEventListener('click', event => {
     });
   dreamsList.innerHTML = "";
 });
+
+/*
+querySelectorAll("#dreams button.close").addEventListener('click', event => {
+  fetch("/delMessage", {})
+    .then(res => res.json())
+    .then(response => {
+      console.log("Delete message");
+    });
+  dreamsList.innerHTML = "";
+});
+
+
+*/
