@@ -38,7 +38,7 @@
       
       
       // Screen size : number of panels 
-      var cols = 22;
+      var cols = 20;
       var rows = 6;
 
 
@@ -75,9 +75,13 @@
             63
           );
 
+        var loadedmessage = "";
         function loadBoard() {
           getMessageList();
+          console.log("currentMessage=" + currentMessage);
+          console.log("loadedmessage=" + loadedmessage);
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
+          loadedmessage = currentMessage;
         }
 
         setInterval(loadBoard, 30000);

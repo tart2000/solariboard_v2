@@ -125,9 +125,3 @@ SolariFlap.prototype = {
     return false;
   }
 };
-/*
-
-var audio = new Audio('audio_file.mp3');
-audio.play();
-
-*/
