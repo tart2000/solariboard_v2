@@ -25,7 +25,6 @@ function setCurrentMessage(m) {
     }
   }
   currentMessage = m[index].dream;
-  console.log("index=" + index);
 }
 
 //function getMessageList() {
@@ -43,7 +42,6 @@ var getMessageList = function() {
         });
       } else {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
-        console.log(response);
         setCurrentMessage(response);
       }
     });

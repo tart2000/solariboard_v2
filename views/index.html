@@ -43,13 +43,6 @@
 
 
       (function() {
-        /*
-        var socket = io.connect("https://solariboard.glitch.me", 3000);
-        socket.on("last_message", function(data) {
-          console.log(data);
-        });
-        */
-
         var board = (window.Board = new Solari());
         new SolariTexture()
           .bind("load", function() {
@@ -84,10 +77,7 @@
 
         function loadBoard() {
           getMessageList();
-          //if (lastLoadedId != lastID) {
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
-          //  lastLoadedId = lastID;
-          //}
         }
 
         setInterval(loadBoard, 30000);
