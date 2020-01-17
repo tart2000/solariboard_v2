@@ -15,18 +15,19 @@ var lastLoadedId = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
+  lastID = m[0].id;
   // Last new message
-  if (lastID > lastLoadedId) {
+  if (lastID != lastLoadedId) {
     index = 0;
+    lastLoadedId = lastID
   } else {
     index++;
+    lastLoadedId = m[index].id;
     if (index >= m.length) {
       index = 0;
     }
   }
   currentMessage = m[index].dream;
-  lastID = m[index].id;
-  lastLoadedId = m[index].id;
 }
 
 //function getMessageList() {
