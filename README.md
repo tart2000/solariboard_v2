@@ -33,17 +33,18 @@ You can modify:
 
 ### Going forward
 
-- Add sound that fits the flipping
-- Button to exit fullscreen
+- Sound that better fits the flipping (at the moment, the end is a bit sharp)
+- Button to exit fullscreen 
 - Security for the /message page
 - Better moderating rights
 - Give messages a duration before which they expire
 - Fetch internet info (weather, rss, Twitter, etc.)
+- Go more 'real time' with a socket so that all instances of the /message are the same and updated in real-time
 
 ### Limits
 
 - For some reason, the board doesn't work on mobile / tablet... (Safari is not supported)
-- You can play a sound each time a letter flips (too heavy)
+- You can't play a sound each time a letter flips (too heavy)
 - The more characters you add, the longer the transitions are...
 
 ## Made with [Glitch](https://glitch.com/)
