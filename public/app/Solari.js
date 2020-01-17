@@ -1,5 +1,5 @@
 var audio = new Audio(
-  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_10s.mp3?v=1579263443246"
+  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fslipflap_13s.mp3?v=1579274752146"
 );
 var playingSound = false;
 

@@ -113,17 +113,6 @@
       var cols = 20;
       var rows = 6;
 
-      /*
-      var audio = new Audio(
-        "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_10s.mp3?v=1579263443246"
-      );
-
-      function playAudio() {
-        //setTimeout(x.play(),4000);
-        audio.play();
-        //h
-      }
-*/
       (function() {
         var board = (window.Board = new Solari());
         new SolariTexture()
@@ -157,17 +146,13 @@
             63
           );
 
-        var loadedmessage = "";
         function loadBoard() {
           if (getMessageList()) {
             var ret = Board.setMessage(
               wordWrap(currentMessage.toUpperCase(), cols)
             );
-            //console.log(ret);
-            //playAudio();
-            loadedmessage = currentMessage;
           } else {
-            console.log("Gros bâtard de service web qui répond pas...");
+            console.log("Problème sur le service de récupération des données...");
           }
         }
 
