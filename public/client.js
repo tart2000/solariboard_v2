@@ -10,25 +10,22 @@ const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Visit /message to publish";
 var lastID = 0;
-// id of last loaded message
-var lastLoadedId = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
   var newID = m[0].id;
-  index++;
-  if (index >= m.length) {
-    index = 0;
-  }
   // Last new message if it is new
   if (newID > lastID) {
     lastID = newID;
     index = 0;
+  } else {
+    index++;
+    if (index >= m.length) {
+      index = 0;
+    }
   }
-  //lastLoadedId = m[index].id;
   currentMessage = m[index].dream;
   console.log("index=" + index);
-  //console.log("lastLoadedId=" + lastLoadedId);
 }
 
 //function getMessageList() {
@@ -46,6 +43,7 @@ var getMessageList = function() {
         });
       } else {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
+        console.log(response);
         setCurrentMessage(response);
       }
     });
