@@ -103,7 +103,6 @@ Solari.prototype = _.extend({
     for (i = 0; i < flaps.length; i++) {
       done = flaps[i].update(diff) && done;
     }
-    console.log("");
     return done;
   },
   start: function () {
