@@ -1,7 +1,9 @@
-var freq = 250;
+var audio = new Audio(
+  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_30ms.mp3?v=1579273384680"
+);
 
 /*global THREE,Stats,_,requestAnimFrame,Events */
-String.prototype.rpad = function (padString, length) {
+String.prototype.rpad = function(padString, length) {
   var str = this;
   while (str.length < length) {
     str = str + padString;
@@ -9,23 +11,25 @@ String.prototype.rpad = function (padString, length) {
   return str;
 };
 
-String.prototype.truncate = function (length) {
-	this.length = length;
+String.prototype.truncate = function(length) {
+  this.length = length;
   return this;
 };
 
-window.requestAnimFrame = (function (callback) {
-  return window.requestAnimationFrame ||
-  window.webkitRequestAnimationFrame ||
-  window.mozRequestAnimationFrame ||
-  window.oRequestAnimationFrame ||
-  window.msRequestAnimationFrame ||
-  function (callback) {
-    window.setTimeout(callback, 1000 / 60);
-  };
-}());
+window.requestAnimFrame = (function(callback) {
+  return (
+    window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function(callback) {
+      window.setTimeout(callback, 1000 / 60);
+    }
+  );
+})();
 
-var Solari = function () {
+var Solari = function() {
   this.animate = false;
   this.flaps = [];
   this.rows = [];
@@ -46,7 +50,7 @@ var Solari = function () {
 
   this.renderer.setSize(this.width, this.height);
 
-  this.pointLight = new THREE.PointLight(0xFFFFFF);
+  this.pointLight = new THREE.PointLight(0xffffff);
   this.ambientLight = new THREE.AmbientLight(0x333333);
 
   this.pointLight.position.x = 800;
@@ -63,101 +67,107 @@ var Solari = function () {
   this.el = this.renderer.domElement;
 };
 
-Solari.prototype = _.extend({
-  VIEW_ANGLE: 45,
-  NEAR: 1,
-  FAR: 10000,
-  render: function () {
-    this.renderer.render(this.scene, this.camera);
-    if(this.showStats) this.stats.update();
-  },
-  add: function (row) {
-    this.rows.push(row);
-    this.flaps = this.flaps.concat(row.flaps);
+Solari.prototype = _.extend(
+  {
+    VIEW_ANGLE: 45,
+    NEAR: 1,
+    FAR: 10000,
+    render: function() {
+      this.renderer.render(this.scene, this.camera);
+      if (this.showStats) this.stats.update();
+    },
+    add: function(row) {
+      this.rows.push(row);
+      this.flaps = this.flaps.concat(row.flaps);
 
-    var self = this;
-    _.each(row.flaps, function (flap) {
-      _.each(flap.objToRender, function (obj) {
-       self.scene.add(obj);
+      var self = this;
+      _.each(row.flaps, function(flap) {
+        _.each(flap.objToRender, function(obj) {
+          self.scene.add(obj);
+        });
       });
-    });
-    this.y += row.height + 10;
+      this.y += row.height + 10;
 
-    this.camera.position.x = (row.x - 10) / 2;
-    this.camera.position.y = -((row.y - (row.height/2)) / 2);
+      this.camera.position.x = (row.x - 10) / 2;
+      this.camera.position.y = -((row.y - row.height / 2) / 2);
 
-    window.addEventListener('resize', _.bind(this.resizeHandler, this));
+      window.addEventListener("resize", _.bind(this.resizeHandler, this));
 
-    return this;
-  },
-  displayStats: function () {
-    this.showStats = true;
-    this.stats = new Stats();
-    this.stats.domElement.style.position = 'absolute';
-    this.stats.domElement.style.top = '0px';
-    document.body.appendChild(this.stats.domElement);
-  },
-  update: function (diff) {
-    var i,
+      return this;
+    },
+    displayStats: function() {
+      this.showStats = true;
+      this.stats = new Stats();
+      this.stats.domElement.style.position = "absolute";
+      this.stats.domElement.style.top = "0px";
+      document.body.appendChild(this.stats.domElement);
+    },
+    update: function(diff) {
+      var i,
         flaps = this.flaps,
         done = true;
 
-    for (i = 0; i < flaps.length; i++) {
-      done = flaps[i].update(diff) && done;
-    }
-    return done;
-  },
-  start: function () {
-    var self = this,
+      for (i = 0; i < flaps.length; i++) {
+        done = flaps[i].update(diff) && done;
+      }
+      return done;
+    },
+    start: function() {
+      var self = this,
         lastTime = new Date().getTime();
 
-    function animate () {
-      // update
-      var time = new Date().getTime();
-      var timeDiff = time - lastTime;
-      lastTime = time;
+      function animate() {
+        // update
+        var time = new Date().getTime();
+        var timeDiff = time - lastTime;
+        lastTime = time;
 
-      // render
-      self.anim = !self.update(timeDiff);
-      self.render();
+        // render
+        self.anim = !self.update(timeDiff);
+        self.render();
 
-      // request new frame
-      if (self.anim) {
-        requestAnimFrame(animate);
-        
+        // request new frame
+        if (self.anim) {
+          requestAnimFrame(animate);
+
+          audio.play();
+          /*
+        var varia = 1.5 - Math.random() * 0.2;
+        var freq = 400 * varia;
         // one context per document
         var context = new (window.AudioContext || window.webkitAudioContext)();
         var osc = context.createOscillator(); // instantiate an oscillator
-        osc.type = 'sine'; // this is the default - also square, sawtooth, triangle
-        osc.frequency.value = 250; // Hz
+        osc.type = 'square'; // this is the default - also square, sawtooth, triangle
+        osc.frequency.value = freq; // Hz
         osc.connect(context.destination); // connect it to the destination
         osc.start(); // start the oscillator
-        osc.stop(context.currentTime + 0.1); // stop 2 seconds after the current time
-        
-      } else {
-        setTimeout(function () {
-          animate((new Date().getTime()));
-        }, 2000);
+        osc.stop(context.currentTime + 0.01); // stop 2 seconds after the current time
+        */
+        } else {
+          setTimeout(function() {
+            animate(new Date().getTime());
+          }, 2000);
+        }
       }
+      animate();
+
+      this.trigger("start");
+    },
+    setMessage: function(msg) {
+      _.each(this.rows, function(row, i) {
+        row.setChars(msg[i] ? msg[i] : " ");
+      });
+      return this;
+    },
+    resizeHandler: function() {
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(w, h);
+
+      this.render();
     }
-    animate();
-
-    this.trigger('start');
-  
   },
-  setMessage: function (msg) {
-    _.each(this.rows, function (row, i) {
-      row.setChars(msg[i] ? msg[i] : ' ');
-    });
-    return this;
-  },
-  resizeHandler: function () {
-    var w = window.innerWidth;
-    var h = window.innerHeight;
-    this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
-
-    this.render();
-  }
-}, Events);
+  Events
+);
