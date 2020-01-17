@@ -55,7 +55,7 @@ var Solari = function () {
   this.scene.add(this.ambientLight);
 
   // Pull the camera back
-  this.camera.position.z = 2800; // old : 3200 change to zoom
+  this.camera.position.z = 2400; // old : 3200 change to zoom
   this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   this.el = this.renderer.domElement;
