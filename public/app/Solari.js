@@ -132,6 +132,7 @@ Solari.prototype = _.extend({
     animate();
 
     this.trigger('start');
+    console.log('start');
   },
   setMessage: function (msg) {
     _.each(this.rows, function (row, i) {
