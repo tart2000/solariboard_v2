@@ -15,19 +15,19 @@ var lastLoadedId = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
-  lastID = m[0].id;
   // Last new message
-  if (lastID != lastLoadedId) {
+  if (m[0].id != lastLoadedId) {
     index = 0;
-    lastLoadedId = lastID
   } else {
     index++;
-    lastLoadedId = m[index].id;
     if (index >= m.length) {
       index = 0;
     }
   }
+  lastLoadedId = m[index].id;
   currentMessage = m[index].dream;
+  console.log("index="+index);
+  console.log("lastLoadedId="+lastLoadedId);
 }
 
 //function getMessageList() {
@@ -62,10 +62,11 @@ const appendNewDream = (dream, id, pubdate) => {
   delBut.id = id;
   
   pubdate = pubdate.split(".")[0];
-  var d = pubdate.split(" ")[0]+"T";
+  var d = pubdate.split(" ")[0];
   const regex = /-/gi;
-  var h = pubdate.split(" ")[1].replace(regex, ":")+"Z";
-  datElt.title = d + h; //.replace(" ", "").replace(regex, '');
+  var h = pubdate.split(" ")[1].replace(regex, ":");
+  datElt.title = d + "T" + h + "Z";
+  datElt.innerHTML = d + " " + h;
   divList.appendChild(messageRow);
 
   // Adding a listener
@@ -140,7 +141,6 @@ function wordWrap(str, charMax) {
     }
   }
 
-  //console.log('arr', arr);
   return arr;
 }
 

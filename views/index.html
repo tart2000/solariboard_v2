@@ -3,10 +3,10 @@
   <head>
     <title>Solari</title>
   </head>
-  <body>
+  <body id="fullscreen">
     <!-- Block for the message that gives the address on the screen -->
     <div id="screen">
-      <div id="link">Pour publier ou modérer des messages, <span id="fullscreen">rdv</span> sur http://solariboard.glitch.me/message  ⛶</div>
+      <div id="link">Pour publier ou modérer des messages, rdv sur http://solariboard.glitch.me/message  <button onclick="openFullscreen();" style="padding: 2px 2px 1px 1px; border-radius: 5px;"><img src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"></button></div>
     </div>
     
     <div id="container"></div>
@@ -20,7 +20,23 @@
     <script src="/app/Solari.js"></script>
     <script src="/client.js" defer></script>
     <script>
-      // Screen size
+      
+      //fullscreen 
+      var elem = document.getElementById("fullscreen");
+        function openFullscreen() {
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          } else if (elem.mozRequestFullScreen) { /* Firefox */
+            elem.mozRequestFullScreen();
+          } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+            elem.webkitRequestFullscreen();
+          } else if (elem.msRequestFullscreen) { /* IE/Edge */
+            elem.msRequestFullscreen();
+          }
+        }
+      
+      
+      // Screen size : number of panels 
       var cols = 18;
       var rows = 6;
 
