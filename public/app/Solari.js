@@ -1,4 +1,5 @@
-var countChar = 0;
+var freq = 250;
+
 /*global THREE,Stats,_,requestAnimFrame,Events */
 String.prototype.rpad = function (padString, length) {
   var str = this;
@@ -111,7 +112,6 @@ Solari.prototype = _.extend({
         lastTime = new Date().getTime();
 
     function animate () {
-      countChar++;
       // update
       var time = new Date().getTime();
       var timeDiff = time - lastTime;
@@ -124,7 +124,16 @@ Solari.prototype = _.extend({
       // request new frame
       if (self.anim) {
         requestAnimFrame(animate);
-        console.log(countChar);
+        
+        // one context per document
+        var context = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = context.createOscillator(); // instantiate an oscillator
+        osc.type = 'sine'; // this is the default - also square, sawtooth, triangle
+        osc.frequency.value = 250; // Hz
+        osc.connect(context.destination); // connect it to the destination
+        osc.start(); // start the oscillator
+        osc.stop(context.currentTime + 0.1); // stop 2 seconds after the current time
+        
       } else {
         setTimeout(function () {
           animate((new Date().getTime()));
