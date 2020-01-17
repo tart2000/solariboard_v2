@@ -4,17 +4,19 @@
     <title>Solari</title>
   </head>
   <body id="fullscreen">
-    <audio id="myAudio">
-      <source src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_10s.mp3?v=1579263443246" type="audio/mp3">
-      Your browser does not support the audio element.
-    </audio>
-    
+
     <!-- Block for the message that gives the address on the screen -->
     <div id="screen">
-      <div id="link"><!-- Some text to appear on the bottom if you want --></div>
-      <button id="fs-btn" onclick="openFullscreen();"><img src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"></button>
+      <div id="link">
+        <!-- Some text to appear on the bottom if you want -->
+      </div>
+      <button id="fs-btn" onclick="openFullscreen();">
+        <img
+          src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"
+        />
+      </button>
     </div>
-    
+
     <div id="container"></div>
     <script src="/lib/underscore.js"></script>
     <script src="/lib/Three.js"></script>
@@ -26,32 +28,37 @@
     <script src="/app/Solari.js"></script>
     <script src="/client.js" defer></script>
     <script>
-      
-      //fullscreen 
+      //fullscreen
       var elem = document.getElementById("fullscreen");
-        function openFullscreen() {
-          if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-          } else if (elem.mozRequestFullScreen) { /* Firefox */
-            elem.mozRequestFullScreen();
-          } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-            elem.webkitRequestFullscreen();
-          } else if (elem.msRequestFullscreen) { /* IE/Edge */
-            elem.msRequestFullscreen();
-          }
+      function openFullscreen() {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          /* Firefox */
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+          /* Chrome, Safari & Opera */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          /* IE/Edge */
+          elem.msRequestFullscreen();
         }
-      
-      
-      // Screen size : number of panels 
+      }
+
+      // Screen size : number of panels
       var cols = 20;
       var rows = 6;
 
-      var x = document.getElementById("myAudio"); 
+      var audio = new Audio(
+        "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_10s.mp3?v=1579263443246"
+      );
 
-      function playAudio() { 
-        setTimeout(x.play(),4000); 
-      } 
-      
+      function playAudio() {
+        //setTimeout(x.play(),4000);
+        audio.play();
+        //h
+      }
+
       (function() {
         var board = (window.Board = new Solari());
         new SolariTexture()
@@ -92,12 +99,12 @@
           console.log("loadedmessage=" + loadedmessage);
           //let difference = patienceDiff( currentMessage.split(""), loadedmessage.split("") );
           //console.log(difference);
+          playAudio();
           Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
           loadedmessage = currentMessage;
-          playAudio();
         }
-        
-        setInterval(loadBoard, 30000); // you can modify how long each message is displayed here 
+
+        setInterval(loadBoard, 30000); // you can modify how long each message is displayed here
       })();
     </script>
 
@@ -109,31 +116,31 @@
       }
       body {
         background: #111;
-        width:100%;
+        width: 100%;
       }
       #screen {
-        width: 100vw; 
+        width: 100vw;
         height: 100vh;
         position: absolute;
-        color: rgba(255,255,255,0);
+        color: rgba(255, 255, 255, 0);
       }
       #link {
-        position: absolute; 
-        color: rgba(255,255,255,0.4); 
+        position: absolute;
+        color: rgba(255, 255, 255, 0.4);
         text-align: center;
-        width: 100%; 
+        width: 100%;
         bottom: 0px;
         padding: 15px;
         font-family: sans-serif;
       }
       #fs-btn {
-        padding: 2px 2px 0px 2px; 
-        border-radius: 5px; 
-        position: absolute; 
+        padding: 2px 2px 0px 2px;
+        border-radius: 5px;
+        position: absolute;
         bottom: 10px;
         right: 10px;
-        background-color: rgba(255,255,255,0.2);
-        border:none;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: none;
       }
     </style>
     <form></form>
