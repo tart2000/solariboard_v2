@@ -1,6 +1,7 @@
 var audio = new Audio(
-  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_30ms.mp3?v=1579273384680"
+  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_10s.mp3?v=1579263443246"
 );
+var playingSound = false;
 
 /*global THREE,Stats,_,requestAnimFrame,Events */
 String.prototype.rpad = function(padString, length) {
@@ -117,6 +118,10 @@ Solari.prototype = _.extend(
         lastTime = new Date().getTime();
 
       function animate() {
+        if (!playingSound) {
+          audio.play();
+          playingSound = true;
+        }
         // update
         var time = new Date().getTime();
         var timeDiff = time - lastTime;
@@ -129,24 +134,13 @@ Solari.prototype = _.extend(
         // request new frame
         if (self.anim) {
           requestAnimFrame(animate);
-
-          audio.play();
-          /*
-        var varia = 1.5 - Math.random() * 0.2;
-        var freq = 400 * varia;
-        // one context per document
-        var context = new (window.AudioContext || window.webkitAudioContext)();
-        var osc = context.createOscillator(); // instantiate an oscillator
-        osc.type = 'square'; // this is the default - also square, sawtooth, triangle
-        osc.frequency.value = freq; // Hz
-        osc.connect(context.destination); // connect it to the destination
-        osc.start(); // start the oscillator
-        osc.stop(context.currentTime + 0.01); // stop 2 seconds after the current time
-        */
         } else {
           setTimeout(function() {
             animate(new Date().getTime());
           }, 2000);
+          audio.pause();
+          audio.currentTime = 0;
+          playingSound = false;
         }
       }
       animate();
