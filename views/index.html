@@ -4,7 +4,6 @@
     <title>Solari</title>
   </head>
   <body id="fullscreen">
-
     <!-- Block for the message that gives the address on the screen -->
     <div id="screen">
       <div id="link">
@@ -94,14 +93,13 @@
 
         var loadedmessage = "";
         function loadBoard() {
+          flipflap = false;
           getMessageList();
-          console.log("currentMessage=" + currentMessage);
-          console.log("loadedmessage=" + loadedmessage);
-          //let difference = patienceDiff( currentMessage.split(""), loadedmessage.split("") );
-          //console.log(difference);
-          playAudio();
-          Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
-          loadedmessage = currentMessage;
+          if (flipflap) {
+            playAudio();
+            Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
+            loadedmessage = currentMessage;
+          }
         }
 
         setInterval(loadBoard, 30000); // you can modify how long each message is displayed here
