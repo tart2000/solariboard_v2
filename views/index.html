@@ -93,12 +93,12 @@
 
         var loadedmessage = "";
         function loadBoard() {
-          flipflap = false;
-          getMessageList();
-          if (flipflap) {
-            playAudio();
+          if (getMessageList()) {
             Board.setMessage(wordWrap(currentMessage.toUpperCase(), cols));
+            playAudio();
             loadedmessage = currentMessage;
+          } else {
+            console.log("Gros bâtard de service web qui répond pas...");
           }
         }
 

@@ -11,7 +11,6 @@ const clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Visit /message to publish"; // here you can modify the 'empty message'
 var lastID = 0;
 var index = 0;
-var flipflap = false;
 
 function setCurrentMessage(m) {
   var newID = m[0].id;
@@ -49,8 +48,8 @@ var getMessageList = function() {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
         setCurrentMessage(response);
       }
-      flipflap = true;
     });
+   return true;
 };
 
 // a helper function that creates a list item for a given dream
