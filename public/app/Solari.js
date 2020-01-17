@@ -1,3 +1,4 @@
+var countChar = 0;
 /*global THREE,Stats,_,requestAnimFrame,Events */
 String.prototype.rpad = function (padString, length) {
   var str = this;
@@ -110,6 +111,7 @@ Solari.prototype = _.extend({
         lastTime = new Date().getTime();
 
     function animate () {
+      countChar++;
       // update
       var time = new Date().getTime();
       var timeDiff = time - lastTime;
@@ -122,17 +124,17 @@ Solari.prototype = _.extend({
       // request new frame
       if (self.anim) {
         requestAnimFrame(animate);
+        console.log(countChar);
       } else {
         setTimeout(function () {
           animate((new Date().getTime()));
         }, 2000);
       }
-
     }
     animate();
 
     this.trigger('start');
-    console.log('start');
+  
   },
   setMessage: function (msg) {
     _.each(this.rows, function (row, i) {
