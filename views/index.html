@@ -5,7 +5,7 @@
   </head>
   <body id="fullscreen">
     <audio id="myAudio">
-      <source src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_30ms.mp3?v=1579262126862" type="audio/mpeg">
+      <source src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fflipflap_3s.mp3?v=1579262790609" type="audio/mp3">
       Your browser does not support the audio element.
     </audio>
     
@@ -49,7 +49,7 @@
       var x = document.getElementById("myAudio"); 
 
       function playAudio() { 
-        x.play(); 
+        setInterval(x.play(),3000); 
       } 
       
       (function() {
