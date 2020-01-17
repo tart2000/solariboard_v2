@@ -8,7 +8,7 @@ const dreamsForm = document.forms[0];
 const dreamInput = dreamsForm.elements["dream"];
 const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
-var currentMessage = "Visit /message to publish";
+var currentMessage = "Visit /message to publish"; // here you can modify the 'empty message'
 var lastID = 0;
 var index = 0;
 

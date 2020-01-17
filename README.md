@@ -22,12 +22,14 @@ If there is no message, it will play a message that gives the address where mess
 
 You can modify:
 
-- the number of rows and lines in the index.html
-- the 'zoom' in the app/solari.js file
-- the time (in ms) messages are shown on the index.html
-- the info message that appears at the bottom of the screen in index.html
-- the message when there are no messages 
-- the characters, but that happens with a .psd file (in assets)
+- the number of rows and lines in the /index.html
+- the 'zoom' in the /app/solari.js file
+- the time (in ms) messages are shown on the /index.html
+- the info message that appears at the bottom of the screen in /index.html
+- the message when there are no messages in /client.js 
+- the character list, but that happens with a .psd file (in assets) (at the moment, they're oriented towards French...)
+- the speed of the character changes in /solariflap.js 
+- the way relative time is shown on the messages (when the messages were sent) in /timetogo.js (in French at the moment)
 
 ### Going forward 
 
@@ -42,6 +44,7 @@ You can modify:
 
 - For some reason, the board doesn't work on mobile / tablet... 
 - You can play a sound each time a letter flips (too heavy) 
+- The more characters you add, the longer the transitions are... 
 
 ## Made with [Glitch](https://glitch.com/)
 

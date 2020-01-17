@@ -1,6 +1,6 @@
 /*global THREE */
 var DEG2RAD =  Math.PI / 180,
-    SPEED = 1400.0,
+    SPEED = 1400.0, // modify speed if you want 
     SolariFlap;
 
 SolariFlap = function (textureSet, x, y) {
