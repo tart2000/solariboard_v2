@@ -15,19 +15,20 @@ var lastLoadedId = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
-  // Last new message
-  if (m[0].id != lastLoadedId) {
+  var newID = m[0].id;
+  index++;
+  if (index >= m.length) {
     index = 0;
-  } else {
-    index++;
-    if (index >= m.length) {
-      index = 0;
-    }
   }
-  lastLoadedId = m[index].id;
+  // Last new message if it is new
+  if (newID > lastID) {
+    lastID = newID;
+    index = 0;
+  }
+  //lastLoadedId = m[index].id;
   currentMessage = m[index].dream;
-  console.log("index="+index);
-  console.log("lastLoadedId="+lastLoadedId);
+  console.log("index=" + index);
+  //console.log("lastLoadedId=" + lastLoadedId);
 }
 
 //function getMessageList() {
@@ -60,7 +61,7 @@ const appendNewDream = (dream, id, pubdate) => {
   var datElt = messageRow.querySelector("small");
   pTxt.textContent = dream;
   delBut.id = id;
-  
+
   pubdate = pubdate.split(".")[0];
   var d = pubdate.split(" ")[0];
   const regex = /-/gi;
@@ -86,13 +87,12 @@ dreamsForm.onsubmit = event => {
     headers: { "Content-Type": "application/json" }
   })
     .then(res => res.json())
-    .then(response => {
-    });
+    .then(response => {});
   // get dream value and add it to the list
   dreams.push(dreamInput.value);
   //appendNewDream(dreamInput.value);
   getMessageList();
-  
+
   // reset form
   dreamInput.value = "";
   dreamInput.focus();

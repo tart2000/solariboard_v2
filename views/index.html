@@ -6,7 +6,8 @@
   <body id="fullscreen">
     <!-- Block for the message that gives the address on the screen -->
     <div id="screen">
-      <div id="link">Pour publier ou modérer des messages, rdv sur http://solariboard.glitch.me/message  <button onclick="openFullscreen();" style="padding: 2px 2px 1px 1px; border-radius: 5px;"><img src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"></button></div>
+      <div id="link">Pour publier ou modérer des messages, rdv sur http://solariboard.glitch.me/message</div>
+      <button id="fs-btn" onclick="openFullscreen();"><img src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"></button>
     </div>
     
     <div id="container"></div>
@@ -117,6 +118,15 @@
         bottom: 0px;
         padding: 15px;
         font-family: sans-serif;
+      }
+      #fs-btn {
+        padding: 2px 2px 0px 2px; 
+        border-radius: 5px; 
+        position: absolute; 
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(255,255,255,0.2);
+        border:none;
       }
     </style>
     <form></form>
