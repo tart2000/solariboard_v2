@@ -4,69 +4,72 @@
     <title>Solari</title>
     <link
       rel="shortcut icon"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon.ico?v=1579270003958"
+      href="/img/favicon.ico"
       type="image/x-icon"
     />
     <link
       rel="icon"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon.png?v=1579270003929"
+      href="/img/favicon.png"
       type="image/png"
     />
     <link
       rel="icon"
       sizes="32x32"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon-32.png?v=1579270004054"
+      href="/img/favicon-32.png"
       type="image/png"
     />
     <link
       rel="icon"
       sizes="64x64"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon-64.png?v=1579270004142"
+      href="/img/favicon-64.png"
       type="image/png"
     />
     <link
       rel="icon"
       sizes="96x96"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon-96.png?v=1579270003860"
+      href="/img/favicon-96.png"
       type="image/png"
     />
     <link
       rel="icon"
       sizes="196x196"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffavicon-196.png?v=1579270003842"
+      href="/img/favicon-196.png"
       type="image/png"
     />
     <link
       rel="apple-touch-icon"
       sizes="152x152"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon.png?v=1579270003874"
+      href="/img/apple-touch-icon.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="60x60"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon-60x60.png?v=1579270004116"
+      href="/img/apple-touch-icon-60x60.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="76x76"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon-76x76.png?v=1579270004001"
+      href="/img/apple-touch-icon-76x76.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="114x114"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon-114x114.png?v=1579270003983"
+      href="/img/apple-touch-icon-114x114.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="120x120"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon-120x120.png?v=1579270003897"
+      href="/img/apple-touch-icon-120x120.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="144x144"
-      href="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fapple-touch-icon-144x144.png?v=1579270004268"
+      href="/img/apple-touch-icon-144x144.png"
     />
     <meta name="msapplication-TileColor" content="#000000" />
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/src/index.js"></script>
   </head>
   <body id="fullscreen">
     <!-- Block for the message that gives the address on the screen -->
@@ -74,10 +77,11 @@
       <div id="link">
         <!-- Some text to appear on the bottom if you want -->
       </div>
-      <button id="fs-btn" onclick="openFullscreen();">
-        <img
-          src="https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Ffullscreen.png?v=1579252960653"
-        />
+      <button id="sound-btn" class="control-btn">
+        <i class="ph ph-speaker-simple-x" id="sound-icon"></i>
+      </button>
+      <button id="fs-btn" onclick="openFullscreen();" class="control-btn">
+        <i class="ph ph-arrows-out"></i>
       </button>
     </div>
 
@@ -94,6 +98,8 @@
     <script>
       //fullscreen
       var elem = document.getElementById("fullscreen");
+      var fsBtn = document.getElementById("fs-btn");
+      
       function openFullscreen() {
         if (elem.requestFullscreen) {
           elem.requestFullscreen();
@@ -106,6 +112,51 @@
         } else if (elem.msRequestFullscreen) {
           /* IE/Edge */
           elem.msRequestFullscreen();
+        }
+      }
+      
+      // Masquer/afficher le bouton selon l'état du fullscreen
+      function toggleFullscreenButton() {
+        if (document.fullscreenElement || 
+            document.webkitFullscreenElement || 
+            document.mozFullScreenElement || 
+            document.msFullscreenElement) {
+          // En mode plein écran - masquer le bouton
+          fsBtn.style.display = "none";
+        } else {
+          // Pas en mode plein écran - afficher le bouton
+          fsBtn.style.display = "block";
+        }
+      }
+      
+      // Écouter les changements d'état du fullscreen
+      document.addEventListener('fullscreenchange', toggleFullscreenButton);
+      document.addEventListener('webkitfullscreenchange', toggleFullscreenButton);
+      document.addEventListener('mozfullscreenchange', toggleFullscreenButton);
+      document.addEventListener('MSFullscreenChange', toggleFullscreenButton);
+      
+      document.getElementById('sound-btn').addEventListener('click', function(event) {
+        toggleSound(event);
+      });
+
+      function toggleSound(event) {
+        if (event) event.stopPropagation();
+        var soundIcon = document.getElementById('sound-icon');
+        
+        if (window.soundEnabled) {
+          // Son activé → le désactiver
+          window.soundEnabled = false;
+          soundIcon.className = 'ph ph-speaker-simple-x';
+          // Arrêter immédiatement le son s'il joue
+          if (typeof window.stopLongSound === 'function') {
+            window.stopLongSound();
+          }
+          console.log('Son désactivé par l\'utilisateur');
+        } else {
+          // Son désactivé → l'activer
+          window.soundEnabled = true;
+          soundIcon.className = 'ph ph-speaker-high';
+          console.log('Son activé par l\'utilisateur');
         }
       }
 
@@ -138,7 +189,7 @@
             setTimeout(loadBoard, 2000);
           })
           .load(
-            "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fchars.png?v=1579257224099",
+            "/img/chars.png",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-.# ;(),':?!+/=@&€*$\"°É£%ÀÊ•[]ÇÈ~".split(
               ""
             ),
@@ -190,15 +241,45 @@
         padding: 15px;
         font-family: sans-serif;
       }
-      #fs-btn {
-        padding: 2px 2px 0px 2px;
-        border-radius: 5px;
+      .control-btn {
+        padding: 8px;
+        border-radius: 8px;
         position: absolute;
-        bottom: 10px;
-        right: 10px;
-        background-color: rgba(255, 255, 255, 0.2);
-        border: none;
+        bottom: 20px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
+      
+      #sound-btn {
+        right: 80px;
+      }
+      
+      #fs-btn {
+        right: 20px;
+      }
+      
+      .control-btn i {
+        font-size: 20px;
+        display: block;
+      }
+      
+      .control-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      }
+      
+      .control-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
     </style>
     <form></form>
     <a href="#" id="clear-dreams"></a>

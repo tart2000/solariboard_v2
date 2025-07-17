@@ -54,13 +54,13 @@ SolariFlap.prototype = {
         bottom = new THREE.Mesh(
           new THREE.PlaneGeometry(flapWidth, flapHeight),
           textureSet.spriteMaterial),
-        flap = new THREE.Mesh(
-          new THREE.CubeGeometry(flapWidth, flapHeight, 0, 1, 1, 1, [
-              null, null, null, null,
-              textureSet.spriteMaterial,
-              textureSet.spriteMaterial
-          ]),
-          new THREE.MeshFaceMaterial()),
+      flap = new THREE.Mesh(
+        new THREE.CubeGeometry(flapWidth, flapHeight, 0, 1, 1, 1, [
+            null, null, null, null,
+            textureSet.spriteMaterial,
+            textureSet.spriteMaterial
+        ]),
+        new THREE.MeshFaceMaterial()),
         varia = 1.1 - Math.random() * 0.2;
 
     this.SPEED = SPEED * DEG2RAD / 1000.0 * varia;

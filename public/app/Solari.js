@@ -1,7 +1,74 @@
-var audio = new Audio(
-  "https://cdn.glitch.com/0ed38d3c-4987-4983-a3f0-2347c4bf05e6%2Fslipflap_13s.mp3?v=1579274752146"
-);
-var playingSound = false;
+// Son long pour l'animation
+var longSound = new Audio("/sound/split_flap_long.mp3");
+var isPlaying = false;
+
+// Rendre les variables globales pour accès depuis HTML
+window.soundEnabled = false; // Son désactivé par défaut
+window.isPlaying = isPlaying;
+
+// Fonction pour démarrer le son
+function startLongSound() {
+  if (!window.soundEnabled || isPlaying) return;
+  
+  try {
+    isPlaying = true;
+    window.isPlaying = true; // Mettre à jour la variable globale
+    longSound.currentTime = 0;
+    longSound.play().catch(function(error) {
+      console.log('Erreur lecture son:', error);
+      isPlaying = false;
+      window.isPlaying = false;
+    });
+  } catch (error) {
+    console.log('Erreur son:', error);
+    isPlaying = false;
+    window.isPlaying = false;
+  }
+}
+
+// Fonction pour arrêter le son
+function stopLongSound() {
+  if (isPlaying) {
+    isPlaying = false;
+    window.isPlaying = false; // Mettre à jour la variable globale
+    longSound.pause();
+    longSound.currentTime = 0;
+  }
+}
+
+// Rendre les fonctions globales
+window.startLongSound = startLongSound;
+window.stopLongSound = stopLongSound;
+
+// Précharger l'audio
+longSound.addEventListener('canplaythrough', function() {
+  console.log('Audio chargé et prêt');
+});
+
+// Activer le son après une interaction utilisateur
+function enableSound() {
+  window.soundEnabled = true; // Mettre à jour la variable globale
+  console.log('Son activé');
+}
+
+// Activer le son au clic sur la page
+document.addEventListener('click', function() {
+  if (!window.soundEnabled) {
+    enableSound();
+  }
+});
+
+// Activer le son au clic sur le bouton fullscreen
+document.addEventListener('DOMContentLoaded', function() {
+  var fsBtn = document.getElementById('fs-btn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', function() {
+      if (!window.soundEnabled) {
+        enableSound();
+      }
+    });
+  }
+});
 
 /*global THREE,Stats,_,requestAnimFrame,Events */
 String.prototype.rpad = function(padString, length) {
@@ -118,10 +185,11 @@ Solari.prototype = _.extend(
         lastTime = new Date().getTime();
 
       function animate() {
-        if (!playingSound) {
-          audio.play();
-          playingSound = true;
+        // Démarrer le son seulement si l'utilisateur l'a activé ET que soundEnabled est true
+        if (!isPlaying && window.soundEnabled) {
+          startLongSound();
         }
+        
         // update
         var time = new Date().getTime();
         var timeDiff = time - lastTime;
@@ -135,12 +203,13 @@ Solari.prototype = _.extend(
         if (self.anim) {
           requestAnimFrame(animate);
         } else {
+          // Arrêter le son quand l'animation est finie
+          if (window.soundEnabled) {
+            stopLongSound();
+          }
           setTimeout(function() {
             animate(new Date().getTime());
           }, 2000);
-          audio.pause();
-          audio.currentTime = 0;
-          playingSound = false;
         }
       }
       animate();

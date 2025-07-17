@@ -24,7 +24,7 @@ function setCurrentMessage(m) {
       index = 0;
     }
   }
-  currentMessage = m[index].dream;
+  currentMessage = m[index].content; // Changed from .dream to .content
 }
 
 // --------------------------------------------------------
@@ -35,14 +35,14 @@ function setCurrentMessage(m) {
 var getMessageList = function() {
   // Suppress all the list
   if (dreamsList) dreamsList.innerHTML = "";
-  // request the dreams from our app's sqlite database
+  // request the dreams from our app's json file
   fetch("/getDreams", {})
     .then(res => res.json())
     .then(response => {
       // If we are on  the backoffice dreamsList exists, if not, not !
       if (dreamsList) {
         response.forEach(row => {
-          appendNewDream(row.dream, row.id, row.pubdate);
+          appendNewDream(row.content, row.id, row.created_at); // Changed from .dream and .pubdate
         });
       } else {
         // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
@@ -53,7 +53,7 @@ var getMessageList = function() {
 };
 
 // a helper function that creates a list item for a given dream
-const appendNewDream = (dream, id, pubdate) => {
+const appendNewDream = (dream, id, created_at) => { // Changed parameter name
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
@@ -63,11 +63,11 @@ const appendNewDream = (dream, id, pubdate) => {
   pTxt.textContent = dream;
   delBut.id = id;
 
-  pubdate = pubdate.split(".")[0];
-  var d = pubdate.split(" ")[0];
-  const regex = /-/gi;
-  var h = pubdate.split(" ")[1].replace(regex, ":");
-  datElt.title = d + "T" + h + "Z";
+  // Parse ISO date string
+  var date = new Date(created_at);
+  var d = date.toISOString().split('T')[0];
+  var h = date.toTimeString().split(' ')[0];
+  datElt.title = created_at;
   datElt.innerHTML = d + " " + h;
   divList.appendChild(messageRow);
 

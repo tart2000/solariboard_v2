@@ -1,28 +1,27 @@
 {
-  "//1": "describes your app and its dependencies",
-  "//2": "https://docs.npmjs.com/files/package.json",
-  "//3": "updating this file will download and update your packages",
-  "name": "hello-sqlite",
-  "version": "0.0.1",
-  "description": "A simple Node app with SQLite as a database management system, instantly up and running.",
+  "name": "solariboard",
+  "version": "1.0.0",
+  "description": "Affichage de type aéroport avec panneau Solari",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "sqlite3": "^4.1.1"
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": "8.x"
+    "node": ">=16.0.0"
   },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/hello-sqlite"
-  },
-  "license": "MIT",
   "keywords": [
-    "node",
-    "glitch",
-    "express"
-  ]
+    "solari",
+    "display",
+    "airport",
+    "flipboard"
+  ],
+  "license": "MIT"
 }

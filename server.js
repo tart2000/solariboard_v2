@@ -1,126 +1,121 @@
-// server.js
-// where your node app starts
-
-// init project
 const express = require("express");
 const bodyParser = require("body-parser");
-const app = express();
 const fs = require("fs");
+const path = require("path");
+
+const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-// we've started you off with Express,
-// but feel free to use whatever libs or frameworks you'd like through `package.json`.
-
-// http://expressjs.com/en/starter/static-files.html
 app.use(express.static("public"));
 
-// init sqlite db
-const dbFile = "./.data/sqlite.db";
-const exists = fs.existsSync(dbFile);
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database(dbFile);
+// Chemin vers le fichier de messages
+const messagesFile = path.join(__dirname, "data", "messages.json");
 
-// if ./.data/sqlite.db does not exist, create it, otherwise print records to console
-db.serialize(() => {
-  if (!exists) {
-    db.run(
-      "CREATE TABLE Dreams (id INTEGER PRIMARY KEY AUTOINCREMENT, dream TEXT, pubdate TEXT)" //
-    );
-    console.log("New table Dreams created!");
-
-    // insert default dreams
-    db.serialize(() => {
-      db.run(
-        "INSERT INTO Dreams (dream, pubdate) VALUES ('Visit /message to publish messages !', strftime('%Y-%m-%d %H-%M-%f','now'))"
-      );
-    });
-  } else {
-    console.log('Database "Dreams" ready to go!');
-    db.each("SELECT * from Dreams ", (err, row) => {
-      if (row) {
-        console.log(row);
-      }
-    });
+// Fonction pour lire les messages
+function readMessages() {
+  try {
+    if (fs.existsSync(messagesFile)) {
+      const data = fs.readFileSync(messagesFile, 'utf8');
+      return JSON.parse(data);
+    }
+    return [];
+  } catch (error) {
+    console.error('Erreur lecture messages:', error);
+    return [];
   }
-});
+}
 
-// http://expressjs.com/en/starter/basic-routing.html
+// Fonction pour écrire les messages
+function writeMessages(messages) {
+  try {
+    // Créer le dossier data s'il n'existe pas
+    const dataDir = path.dirname(messagesFile);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(messagesFile, JSON.stringify(messages, null, 2));
+  } catch (error) {
+    console.error('Erreur écriture messages:', error);
+  }
+}
+
+// Routes
 app.get("/", (request, response) => {
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
-// http://expressjs.com/en/starter/basic-routing.html
 app.get("/message", (request, response) => {
   response.sendFile(`${__dirname}/views/message.html`);
 });
 
-// endpoint to get all the dreams in the database
+// Récupérer tous les messages
 app.get("/getDreams", (request, response) => {
-  db.all("SELECT * from Dreams order by id DESC", (err, rows) => {
-    response.send(JSON.stringify(rows));
-  });
+  try {
+    const messages = readMessages();
+    response.json(messages);
+  } catch (error) {
+    console.error('Erreur getDreams:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
-// endpoint to add a dream to the database
+// Ajouter un message
 app.post("/addDream", (request, response) => {
-
-  // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
-  if (!process.env.DISALLOW_WRITE) {
+  try {
     const cleansedDream = cleanseString(request.body.dream);
-    db.run("INSERT INTO Dreams (dream, pubdate) VALUES (?, strftime('%Y-%m-%d %H-%M-%f','now'))", cleansedDream, error => {
-      if (error) {
-        console.log(error);
-        response.send({ message: "error!" });
-      } else {
-        console.log(`add to dreams ${request.body.dream}`);
-        response.send({ message: "success" });
-
-      }
-    });
+    const messages = readMessages();
+    
+    const newMessage = {
+      id: Date.now(), // Utiliser timestamp comme ID unique
+      content: cleansedDream,
+      created_at: new Date().toISOString()
+    };
+    
+    messages.unshift(newMessage); // Ajouter au début
+    writeMessages(messages);
+    
+    console.log(`Message ajouté: ${cleansedDream}`);
+    response.json({ message: "success" });
+  } catch (error) {
+    console.error('Erreur addDream:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// endpoint to clear dreams from the database
-app.get("/clearDreams", (request, response) => {
-  // DISALLOW_WRITE is an ENV variable that gets reset for new projects so you can write to the database
-  if (!process.env.DISALLOW_WRITE) {
-    db.each(
-      "SELECT * from Dreams",
-      (err, row) => {
-        console.log("row", row);
-        db.run("DELETE FROM Dreams WHERE ID=?", row.id, error => {
-          if (row) {
-            console.log(`deleted row ${row.id}`);
-          }
-        });
-      },
-      err => {
-        if (err) {
-          response.send({ message: "error!" });
-        } else {
-          response.send({ message: "success" });
-        }
-      }
-    );
-  }
-});
-
-// endpoint to clear a message from the database
+// Supprimer un message
 app.post("/delMessage", (request, response) => {
-  console.log(request.body.id);
-        db.run("DELETE FROM Dreams WHERE ID=?", request.body.id, error => {
-            console.log(`deleted row ${request.body.id}`);
-        });
+  try {
+    const messages = readMessages();
+    const filteredMessages = messages.filter(msg => msg.id != request.body.id);
+    writeMessages(filteredMessages);
+    
+    console.log(`Message supprimé: ${request.body.id}`);
+    response.json({ message: "success" });
+  } catch (error) {
+    console.error('Erreur delMessage:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
-// helper function that prevents html/css/script malice
+// Vider tous les messages
+app.get("/clearDreams", (request, response) => {
+  try {
+    writeMessages([]);
+    console.log('Tous les messages supprimés');
+    response.json({ message: "success" });
+  } catch (error) {
+    console.error('Erreur clearDreams:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Fonction de nettoyage des chaînes
 const cleanseString = function(string) {
   return string.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  //return string;
 };
 
-// listen for requests :)
-var listener = app.listen(process.env.PORT, () => {
-  console.log(`Your app is listening on port ${listener.address().port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
+  console.log(`Messages chargés depuis: ${messagesFile}`);
 });
