@@ -51,24 +51,7 @@ function enableSound() {
   console.log('Son activé');
 }
 
-// Activer le son au clic sur la page
-document.addEventListener('click', function() {
-  if (!window.soundEnabled) {
-    enableSound();
-  }
-});
 
-// Activer le son au clic sur le bouton fullscreen
-document.addEventListener('DOMContentLoaded', function() {
-  var fsBtn = document.getElementById('fs-btn');
-  if (fsBtn) {
-    fsBtn.addEventListener('click', function() {
-      if (!window.soundEnabled) {
-        enableSound();
-      }
-    });
-  }
-});
 
 /*global THREE,Stats,_,requestAnimFrame,Events */
 String.prototype.rpad = function(padString, length) {

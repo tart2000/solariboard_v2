@@ -77,6 +77,9 @@
       <div id="link">
         <!-- Some text to appear on the bottom if you want -->
       </div>
+      <button id="qr-btn" class="control-btn">
+        <i class="ph ph-qr-code"></i>
+      </button>
       <button id="sound-btn" class="control-btn">
         <i class="ph ph-speaker-simple-x" id="sound-icon"></i>
       </button>
@@ -115,17 +118,23 @@
         }
       }
       
-      // Masquer/afficher le bouton selon l'état du fullscreen
+      // Masquer/afficher les boutons selon l'état du fullscreen
       function toggleFullscreenButton() {
+        var soundBtn = document.getElementById('sound-btn');
+        var qrBtn = document.getElementById('qr-btn');
         if (document.fullscreenElement || 
             document.webkitFullscreenElement || 
             document.mozFullScreenElement || 
             document.msFullscreenElement) {
-          // En mode plein écran - masquer le bouton
+          // En mode plein écran - masquer les boutons
           fsBtn.style.display = "none";
+          soundBtn.style.display = "none";
+          qrBtn.style.display = "none";
         } else {
-          // Pas en mode plein écran - afficher le bouton
+          // Pas en mode plein écran - afficher les boutons
           fsBtn.style.display = "block";
+          soundBtn.style.display = "block";
+          qrBtn.style.display = "block";
         }
       }
       
@@ -255,8 +264,12 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
       
+      #qr-btn {
+        right: 120px;
+      }
+      
       #sound-btn {
-        right: 80px;
+        right: 70px;
       }
       
       #fs-btn {
