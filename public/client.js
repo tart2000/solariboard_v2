@@ -35,8 +35,16 @@ function setCurrentMessage(m) {
 var getMessageList = function() {
   // Suppress all the list
   if (dreamsList) dreamsList.innerHTML = "";
+  
+  // Détecter le client depuis l'URL
+  const pathParts = window.location.pathname.split('/');
+  const client = pathParts[1]; // Le premier segment après le slash
+  
+  // Choisir la route appropriée
+  const apiUrl = client && client !== 'message' ? `/${client}/getDreams` : "/getDreams";
+  
   // request the dreams from our app's json file
-  fetch("/getDreams", {})
+  fetch(apiUrl, {})
     .then(res => res.json())
     .then(response => {
       // If we are on  the backoffice dreamsList exists, if not, not !
@@ -82,7 +90,14 @@ dreamsForm.onsubmit = event => {
 
   const data = { dream: dreamInput.value };
 
-  fetch("/addDream", {
+  // Détecter le client depuis l'URL
+  const pathParts = window.location.pathname.split('/');
+  const client = pathParts[1]; // Le premier segment après le slash
+  
+  // Choisir la route appropriée
+  const apiUrl = client && client !== 'message' ? `/${client}/addDream` : "/addDream";
+
+  fetch(apiUrl, {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }

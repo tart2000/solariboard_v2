@@ -41,10 +41,37 @@ function writeMessages(messages) {
 
 // Routes
 app.get("/", (request, response) => {
+  response.sendFile(`${__dirname}/views/landing.html`);
+});
+
+// Routes pour les clients spécifiques
+app.get("/:client", (request, response) => {
+  const client = request.params.client;
+  
+  // Vérifier si le client existe dans les données
+  const messages = readMessages();
+  const clientExists = messages.some(msg => msg.client === client);
+  
+  if (!clientExists) {
+    // Rediriger vers la landing page si le client n'existe pas
+    return response.redirect('/');
+  }
+  
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
-app.get("/message", (request, response) => {
+app.get("/:client/message", (request, response) => {
+  const client = request.params.client;
+  
+  // Vérifier si le client existe dans les données
+  const messages = readMessages();
+  const clientExists = messages.some(msg => msg.client === client);
+  
+  if (!clientExists) {
+    // Rediriger vers la landing page si le client n'existe pas
+    return response.redirect('/');
+  }
+  
   response.sendFile(`${__dirname}/views/message.html`);
 });
 
@@ -55,6 +82,19 @@ app.get("/getDreams", (request, response) => {
     response.json(messages);
   } catch (error) {
     console.error('Erreur getDreams:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Récupérer les messages d'un client spécifique
+app.get("/:client/getDreams", (request, response) => {
+  try {
+    const client = request.params.client;
+    const messages = readMessages();
+    const clientMessages = messages.filter(msg => msg.client === client);
+    response.json(clientMessages);
+  } catch (error) {
+    console.error('Erreur getDreams pour client:', error);
     response.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -78,6 +118,31 @@ app.post("/addDream", (request, response) => {
     response.json({ message: "success" });
   } catch (error) {
     console.error('Erreur addDream:', error);
+    response.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Ajouter un message pour un client spécifique
+app.post("/:client/addDream", (request, response) => {
+  try {
+    const client = request.params.client;
+    const cleansedDream = cleanseString(request.body.dream);
+    const messages = readMessages();
+    
+    const newMessage = {
+      id: Date.now(), // Utiliser timestamp comme ID unique
+      content: cleansedDream,
+      client: client,
+      created_at: new Date().toISOString()
+    };
+    
+    messages.unshift(newMessage); // Ajouter au début
+    writeMessages(messages);
+    
+    console.log(`Message ajouté pour ${client}: ${cleansedDream}`);
+    response.json({ message: "success" });
+  } catch (error) {
+    console.error('Erreur addDream pour client:', error);
     response.status(500).json({ error: 'Erreur serveur' });
   }
 });
