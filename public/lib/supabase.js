@@ -17,7 +17,7 @@ async function initSupabase() {
       supabaseUrl = config.supabaseUrl;
       supabaseAnonKey = config.supabaseAnonKey;
       
-      console.log('Config récupérée:', { supabaseUrl, supabaseAnonKey });
+      console.log('Configuration Supabase récupérée');
       
       if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('URL ou clé Supabase manquante');
@@ -30,7 +30,7 @@ async function initSupabase() {
         try {
           window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
           supabaseReady = true;
-          console.log('Supabase initialisé avec:', supabaseUrl);
+          console.log('Supabase initialisé avec succès');
         } catch (error) {
           console.error('Erreur création client Supabase:', error);
         }
@@ -66,7 +66,7 @@ async function getMessagesByClient(client) {
       return [];
     }
     
-    console.log('Messages récupérés:', data);
+    console.log('Messages récupérés avec succès');
     return data || [];
   } catch (error) {
     console.error('Erreur getMessagesByClient:', error);
@@ -115,7 +115,7 @@ async function deleteMessage(id) {
       return false;
     }
     
-    console.log('Suppression du message avec ID:', id);
+    console.log('Suppression du message en cours');
     
     const { error } = await window.supabase
       .from('messages')
@@ -143,7 +143,7 @@ async function deleteAllMessages(client) {
       return false;
     }
     
-    console.log('Suppression de tous les messages pour le client:', client);
+    console.log('Suppression de tous les messages en cours');
     
     const { error } = await window.supabase
       .from('messages')

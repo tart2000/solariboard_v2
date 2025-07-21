@@ -72,7 +72,8 @@ function readClients() {
 
 // Routes
 app.get("/", (request, response) => {
-  response.sendFile(`${__dirname}/views/landing.html`);
+  // Rediriger directement vers pocstudio
+  response.redirect('/pocstudio');
 });
 
 // Routes pour les clients spécifiques
@@ -84,8 +85,8 @@ app.get("/:client", (request, response) => {
   const clientExists = clients.some(c => c.id === client);
   
   if (!clientExists) {
-    // Rediriger vers la landing page si le client n'est pas autorisé
-    return response.redirect('/');
+    // Rediriger vers pocstudio si le client n'est pas autorisé
+    return response.redirect('/pocstudio');
   }
   
   response.sendFile(`${__dirname}/views/index.html`);
@@ -99,11 +100,26 @@ app.get("/:client/message", (request, response) => {
   const clientExists = clients.some(c => c.id === client);
   
   if (!clientExists) {
-    // Rediriger vers la landing page si le client n'est pas autorisé
-    return response.redirect('/');
+    // Rediriger vers pocstudio si le client n'est pas autorisé
+    return response.redirect('/pocstudio');
   }
   
   response.sendFile(`${__dirname}/views/message.html`);
+});
+
+app.get("/:client/messages", (request, response) => {
+  const client = request.params.client;
+  
+  // Vérifier si le client est autorisé
+  const clients = readClients();
+  const clientExists = clients.some(c => c.id === client);
+  
+  if (!clientExists) {
+    // Rediriger vers pocstudio si le client n'est pas autorisé
+    return response.redirect('/pocstudio');
+  }
+  
+  response.sendFile(`${__dirname}/views/messages.html`);
 });
 
 

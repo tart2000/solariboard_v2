@@ -5,16 +5,17 @@ const dreams = [];
 
 // define variables that reference elements on our page
 const dreamsForm = document.forms[0];
-const dreamInput = dreamsForm.elements["dream"];
+const dreamInput = dreamsForm ? dreamsForm.elements["dream"] : null;
 const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Rendez-vous sur /message pour envoyer votre premier message"; // Message de fallback
 var lastID = 0;
 var index = 0;
 
-// Détecter si on est sur la page message ou sur la page Solari
-const isMessagePage = window.location.pathname.includes('/message');
-const isSolariPage = !isMessagePage;
+// Détecter si on est sur la page message, messages ou sur la page Solari
+const isMessagePage = window.location.pathname.includes('/message') && !window.location.pathname.includes('/messages');
+const isMessagesPage = window.location.pathname.includes('/messages');
+const isSolariPage = !isMessagePage && !isMessagesPage;
 
 function setCurrentMessage(m) {
   // Si aucun message ou tableau vide
@@ -45,14 +46,14 @@ function setCurrentMessage(m) {
 var getMessageList = function() {
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'sparklab'; // Le premier segment après le slash
+  const client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
   
-  console.log('Chargement des messages pour le client:', client);
+  console.log('Chargement des messages en cours');
   console.log('Page message:', isMessagePage);
   console.log('Page Solari:', isSolariPage);
   
-  // Vider la liste si on est sur la page message
-  if (isMessagePage && dreamsList) {
+  // Vider la liste si on est sur la page messages (modération)
+  if (isMessagesPage && dreamsList) {
     dreamsList.innerHTML = "";
   }
   
@@ -64,8 +65,8 @@ var getMessageList = function() {
       .then(response => {
         console.log('Messages récupérés:', response);
         
-        // Si on est sur la page message, afficher dans la liste
-        if (isMessagePage && dreamsList) {
+        // Si on est sur la page messages (modération), afficher dans la liste
+        if (isMessagesPage && dreamsList) {
           response.forEach(row => {
             appendNewDream(row.content, row.id, row.created_at);
           });
@@ -113,7 +114,8 @@ const appendNewDream = (dream, id, created_at) => { // Changed parameter name
 };
 
 // listen for the form to be submitted and add a new dream when it is
-dreamsForm.onsubmit = event => {
+if (dreamsForm) {
+  dreamsForm.onsubmit = event => {
   // stop our form submission from refreshing the page
   event.preventDefault();
 
@@ -127,10 +129,9 @@ dreamsForm.onsubmit = event => {
 
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'sparklab'; // Le premier segment après le slash
+  const client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
   
-  console.log('Ajout de message pour le client:', client);
-  console.log('Contenu du message:', messageContent);
+  console.log('Ajout de message en cours');
   
   // Utiliser Supabase si disponible
   if (window.SupabaseClient && window.SupabaseClient.addMessage) {
@@ -155,18 +156,20 @@ dreamsForm.onsubmit = event => {
   } else {
     console.error('Supabase non disponible');
   }
-};
+  };
+}
 
 
 
-clearButton.addEventListener("click", event => {
+if (clearButton) {
+  clearButton.addEventListener("click", event => {
   event.preventDefault();
   
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'sparklab';
+  const client = pathParts[1] || 'pocstudio';
   
-  console.log('Suppression de tous les messages pour le client:', client);
+  console.log('Suppression de tous les messages en cours');
   
   // Utiliser Supabase si disponible
   if (window.SupabaseClient && window.SupabaseClient.deleteAllMessages) {
@@ -196,7 +199,7 @@ var delFunction = function() {
   const messageId = this.id;
   const divASupp = this.parentElement;
   
-  console.log('Suppression du message avec ID:', messageId);
+  console.log('Suppression du message en cours');
   
   // Utiliser Supabase si disponible
   if (window.SupabaseClient && window.SupabaseClient.deleteMessage) {
@@ -221,6 +224,7 @@ var delFunction = function() {
     console.error('Supabase non disponible pour la suppression');
   }
 };
+}
 
 // Test wordwrap
 function wordWrap(str, charMax) {

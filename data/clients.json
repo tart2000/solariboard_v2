@@ -1,8 +1,13 @@
 [
-  {
+{
+    "id": "pocstudio",
+    "name": "POC studio",
+    "description": "Tableau principal"
+    },
+    {
     "id": "sparklab",
     "name": "Sparklab",
-    "description": "Tableau principal"
+    "description": "Tableau personnel"
   },
   {
     "id": "nico",
