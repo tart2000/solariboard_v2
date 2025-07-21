@@ -1,0 +1,12 @@
+[
+  {
+    "id": "sparklab",
+    "name": "Sparklab",
+    "description": "Tableau principal"
+  },
+  {
+    "id": "nico",
+    "name": "Nico",
+    "description": "Tableau personnel"
+  }
+] 
