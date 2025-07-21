@@ -50,3 +50,4 @@ You can modify:
 ## Made with [Glitch](https://glitch.com/)
 
 \ ゜ o ゜)ノ
+# Vercel deployment ready
