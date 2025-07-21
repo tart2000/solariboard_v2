@@ -30,6 +30,7 @@
     crossorigin="anonymous"
   />
   <link rel="stylesheet" href="/message.css" />
+  <script src="/lib/supabase.js"></script>
   <script src="/client.js" defer></script>
 </head>
 
@@ -90,4 +91,19 @@
   </template>
 
   <script src="/timetogo.js" defer></script>
+  
+  <script>
+    // Initialiser Supabase
+    if (window.SupabaseClient) {
+      window.SupabaseClient.init().then(() => {
+        console.log('Supabase initialisé avec succès sur la page message');
+        // Charger les messages une fois Supabase initialisé
+        if (typeof getMessageList === 'function') {
+          getMessageList();
+        }
+      }).catch(error => {
+        console.error('Erreur initialisation Supabase:', error);
+      });
+    }
+  </script>
 </body>

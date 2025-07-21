@@ -12,6 +12,10 @@ var currentMessage = "Rendez-vous sur /message pour envoyer votre premier messag
 var lastID = 0;
 var index = 0;
 
+// Détecter si on est sur la page message ou sur la page Solari
+const isMessagePage = window.location.pathname.includes('/message');
+const isSolariPage = !isMessagePage;
+
 function setCurrentMessage(m) {
   // Si aucun message ou tableau vide
   if (!m || m.length === 0) {
@@ -39,23 +43,35 @@ function setCurrentMessage(m) {
 //  Get list of all messages from database.
 // --------------------------------------------------------
 var getMessageList = function() {
-  // Suppress all the list
-  if (dreamsList) dreamsList.innerHTML = "";
-  
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1]; // Le premier segment après le slash
+  const client = pathParts[1] || 'sparklab'; // Le premier segment après le slash
+  
+  console.log('Chargement des messages pour le client:', client);
+  console.log('Page message:', isMessagePage);
+  console.log('Page Solari:', isSolariPage);
+  
+  // Vider la liste si on est sur la page message
+  if (isMessagePage && dreamsList) {
+    dreamsList.innerHTML = "";
+  }
   
   // Utiliser Supabase si disponible, sinon fallback vers l'API
   if (window.SupabaseClient && window.SupabaseClient.getMessagesByClient) {
+    console.log('Utilisation de Supabase pour récupérer les messages');
     // Utiliser Supabase
-    window.SupabaseClient.getMessagesByClient(client || 'sparklab')
+    window.SupabaseClient.getMessagesByClient(client)
       .then(response => {
-        if (dreamsList) {
+        console.log('Messages récupérés:', response);
+        
+        // Si on est sur la page message, afficher dans la liste
+        if (isMessagePage && dreamsList) {
           response.forEach(row => {
             appendNewDream(row.content, row.id, row.created_at);
           });
-        } else {
+        }
+        // Si on est sur la page Solari, mettre à jour le message courant
+        if (isSolariPage) {
           setCurrentMessage(response);
         }
       })
@@ -65,32 +81,13 @@ var getMessageList = function() {
         fallbackToExpressAPI(client);
       });
   } else {
-    // Fallback vers l'API Express
-    fallbackToExpressAPI(client);
+    console.error('Supabase non disponible');
   }
   
   return true;
 };
 
-// Fonction de fallback vers l'API Express
-function fallbackToExpressAPI(client) {
-  const apiUrl = client && client !== 'message' ? `/${client}/getDreams` : "/getDreams";
-  
-  fetch(apiUrl, {})
-    .then(res => res.json())
-    .then(response => {
-      if (dreamsList) {
-        response.forEach(row => {
-          appendNewDream(row.content, row.id, row.created_at);
-        });
-      } else {
-        setCurrentMessage(response);
-      }
-    })
-    .catch(error => {
-      console.error('Erreur API Express:', error);
-    });
-}
+
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id, created_at) => { // Changed parameter name
@@ -120,84 +117,109 @@ dreamsForm.onsubmit = event => {
   // stop our form submission from refreshing the page
   event.preventDefault();
 
-  const dreamContent = dreamInput.value;
+  const messageContent = dreamInput.value;
+  
+  // Vérifier que le message n'est pas vide
+  if (!messageContent.trim()) {
+    console.log('Message vide, ignoré');
+    return;
+  }
 
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
   const client = pathParts[1] || 'sparklab'; // Le premier segment après le slash
   
-  // Utiliser Supabase si disponible, sinon fallback vers l'API
+  console.log('Ajout de message pour le client:', client);
+  console.log('Contenu du message:', messageContent);
+  
+  // Utiliser Supabase si disponible
   if (window.SupabaseClient && window.SupabaseClient.addMessage) {
+    console.log('Utilisation de Supabase pour ajouter le message');
     // Utiliser Supabase
-    window.SupabaseClient.addMessage(dreamContent, client)
+    window.SupabaseClient.addMessage(messageContent, client)
       .then(success => {
         if (success) {
-          console.log('Message ajouté via Supabase');
-          dreams.push(dreamContent);
+          console.log('Message ajouté avec succès via Supabase');
+          // Recharger la liste des messages
           getMessageList();
+          // Vider le champ de saisie
           dreamInput.value = "";
           dreamInput.focus();
         } else {
-          console.error('Erreur ajout message Supabase');
-          // Fallback vers l'API Express
-          fallbackAddMessage(dreamContent, client);
+          console.error('Erreur lors de l\'ajout du message via Supabase');
         }
       })
       .catch(error => {
-        console.error('Erreur Supabase:', error);
-        // Fallback vers l'API Express
-        fallbackAddMessage(dreamContent, client);
+        console.error('Erreur Supabase lors de l\'ajout:', error);
       });
   } else {
-    // Fallback vers l'API Express
-    fallbackAddMessage(dreamContent, client);
+    console.error('Supabase non disponible');
   }
 };
 
-// Fonction de fallback pour ajouter un message via l'API Express
-function fallbackAddMessage(dreamContent, client) {
-  const data = { dream: dreamContent };
-  const apiUrl = client && client !== 'message' ? `/${client}/addDream` : "/addDream";
 
-  fetch(apiUrl, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
-  })
-    .then(res => res.json())
-    .then(response => {
-      dreams.push(dreamContent);
-      getMessageList();
-      dreamInput.value = "";
-      dreamInput.focus();
-    })
-    .catch(error => {
-      console.error('Erreur API Express:', error);
-    });
-}
 
 clearButton.addEventListener("click", event => {
-  fetch("/clearDreams", {})
-    .then(res => res.json())
-    .then(response => {
-      console.log("cleared dreams");
-    });
-  dreamsList.innerHTML = "";
+  event.preventDefault();
+  
+  // Détecter le client depuis l'URL
+  const pathParts = window.location.pathname.split('/');
+  const client = pathParts[1] || 'sparklab';
+  
+  console.log('Suppression de tous les messages pour le client:', client);
+  
+  // Utiliser Supabase si disponible
+  if (window.SupabaseClient && window.SupabaseClient.deleteAllMessages) {
+    console.log('Utilisation de Supabase pour supprimer tous les messages');
+    
+    window.SupabaseClient.deleteAllMessages(client)
+      .then(success => {
+        if (success) {
+          console.log('Tous les messages supprimés avec succès via Supabase');
+          // Vider la liste dans le DOM
+          if (dreamsList) {
+            dreamsList.innerHTML = "";
+          }
+        } else {
+          console.error('Erreur lors de la suppression de tous les messages via Supabase');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur Supabase lors de la suppression de tous les messages:', error);
+      });
+  } else {
+    console.error('Supabase non disponible pour la suppression de tous les messages');
+  }
 });
 
 var delFunction = function() {
-  var divASupp = this.parentElement;
-  dreamsList.removeChild(divASupp);
-  const data = { id: this.id };
-  fetch("/delMessage", {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
-  })
-    .then(res => res.json())
-    .then(response => {
-      console.log(JSON.stringify(response));
-    });
+  const messageId = this.id;
+  const divASupp = this.parentElement;
+  
+  console.log('Suppression du message avec ID:', messageId);
+  
+  // Utiliser Supabase si disponible
+  if (window.SupabaseClient && window.SupabaseClient.deleteMessage) {
+    console.log('Utilisation de Supabase pour supprimer le message');
+    
+    window.SupabaseClient.deleteMessage(messageId)
+      .then(success => {
+        if (success) {
+          console.log('Message supprimé avec succès via Supabase');
+          // Supprimer l'élément du DOM
+          if (dreamsList && divASupp) {
+            dreamsList.removeChild(divASupp);
+          }
+        } else {
+          console.error('Erreur lors de la suppression du message via Supabase');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur Supabase lors de la suppression:', error);
+      });
+  } else {
+    console.error('Supabase non disponible pour la suppression');
+  }
 };
 
 // Test wordwrap
@@ -222,4 +244,7 @@ function wordWrap(str, charMax) {
   return arr;
 }
 
-getMessageList();
+// Ne charger les messages automatiquement que sur la page Solari
+if (isSolariPage) {
+  getMessageList();
+}

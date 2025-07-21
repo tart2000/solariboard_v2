@@ -1,0 +1,61 @@
+/* Styles pour la page message */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.container {
+  max-width: 800px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alert-secondary {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.btn-danger.btn-outline {
+  color: #dc3545;
+  border-color: #dc3545;
+  background-color: transparent;
+}
+
+.btn-danger.btn-outline:hover {
+  color: white;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+small.timeago {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.close {
+  opacity: 0.5;
+}
+
+.close:hover {
+  opacity: 1;
+} 

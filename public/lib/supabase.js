@@ -115,6 +115,8 @@ async function deleteMessage(id) {
       return false;
     }
     
+    console.log('Suppression du message avec ID:', id);
+    
     const { error } = await window.supabase
       .from('messages')
       .delete()
@@ -125,9 +127,38 @@ async function deleteMessage(id) {
       return false;
     }
     
+    console.log('Message supprimé avec succès');
     return true;
   } catch (error) {
     console.error('Erreur deleteMessage:', error);
+    return false;
+  }
+}
+
+// Fonction pour supprimer tous les messages d'un client
+async function deleteAllMessages(client) {
+  try {
+    if (!window.supabase) {
+      console.error('Supabase non initialisé');
+      return false;
+    }
+    
+    console.log('Suppression de tous les messages pour le client:', client);
+    
+    const { error } = await window.supabase
+      .from('messages')
+      .delete()
+      .eq('client', client);
+    
+    if (error) {
+      console.error('Erreur suppression tous les messages:', error);
+      return false;
+    }
+    
+    console.log('Tous les messages supprimés avec succès');
+    return true;
+  } catch (error) {
+    console.error('Erreur deleteAllMessages:', error);
     return false;
   }
 }
@@ -157,5 +188,6 @@ window.SupabaseClient = {
   getMessagesByClient: getMessagesByClient,
   addMessage: addMessage,
   deleteMessage: deleteMessage,
+  deleteAllMessages: deleteAllMessages,
   waitForSupabase: waitForSupabase
 }; 

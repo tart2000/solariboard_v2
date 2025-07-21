@@ -30,6 +30,12 @@ app.get('/timetogo.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/timetogo.js'));
 });
 
+// Route spécifique pour message.css
+app.get('/message.css', (req, res) => {
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(__dirname, 'public/message.css'));
+});
+
 // Endpoint pour récupérer la configuration Supabase
 app.get("/api/config", (request, response) => {
   const config = {
@@ -47,20 +53,6 @@ app.get("/api/config", (request, response) => {
 
 // Chemin vers les fichiers de données
 const clientsFile = path.join(__dirname, "data", "clients.json");
-
-// Fonction pour lire les clients autorisés
-function readClients() {
-  try {
-    if (fs.existsSync(clientsFile)) {
-      const data = fs.readFileSync(clientsFile, 'utf8');
-      return JSON.parse(data);
-    }
-    return [];
-  } catch (error) {
-    console.error('Erreur lecture clients:', error);
-    return [];
-  }
-}
 
 // Fonction pour lire les clients autorisés
 function readClients() {
