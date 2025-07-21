@@ -8,6 +8,38 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/lib/(.*)",
+      "dest": "/public/lib/$1"
+    },
+    {
+      "src": "/app/(.*)",
+      "dest": "/public/app/$1"
+    },
+    {
+      "src": "/views/(.*)",
+      "dest": "/views/$1"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/public/img/$1"
+    },
+    {
+      "src": "/sound/(.*)",
+      "dest": "/public/sound/$1"
+    },
+    {
+      "src": "/plugin/(.*)",
+      "dest": "/public/plugin/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
