@@ -177,7 +177,13 @@
       
       function generateQRCode() {
         // Construire l'URL actuelle + /message
-        const currentUrl = window.location.origin + window.location.pathname + '/message';
+        let currentUrl = window.location.origin + window.location.pathname;
+        
+        // S'assurer qu'il n'y a pas de slash en double
+        if (currentUrl.endsWith('/')) {
+          currentUrl = currentUrl.slice(0, -1);
+        }
+        currentUrl += '/message';
         
         // Utiliser une API gratuite pour générer le QR code
         const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentUrl)}`;
