@@ -18,6 +18,18 @@ app.use('/img', express.static(path.join(__dirname, 'public/img')));
 app.use('/sound', express.static(path.join(__dirname, 'public/sound')));
 app.use('/plugin', express.static(path.join(__dirname, 'public/plugin')));
 
+// Route spécifique pour client.js
+app.get('/client.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'public/client.js'));
+});
+
+// Route spécifique pour timetogo.js
+app.get('/timetogo.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'public/timetogo.js'));
+});
+
 // Endpoint pour récupérer la configuration Supabase
 app.get("/api/config", (request, response) => {
   const config = {
