@@ -8,11 +8,17 @@ const dreamsForm = document.forms[0];
 const dreamInput = dreamsForm.elements["dream"];
 const dreamsList = document.getElementById("dreams");
 const clearButton = document.querySelector("#clear-dreams");
-var currentMessage = "Visit /message to publish"; // here you can modify the 'empty message'
+var currentMessage = "Rendez-vous sur /message pour envoyer votre premier message"; // Message de fallback
 var lastID = 0;
 var index = 0;
 
 function setCurrentMessage(m) {
+  // Si aucun message ou tableau vide
+  if (!m || m.length === 0) {
+    currentMessage = "Rendez-vous sur /message pour envoyer votre premier message";
+    return;
+  }
+  
   var newID = m[0].id;
   // Last new message if it is new
   if (newID > lastID) {
@@ -40,25 +46,51 @@ var getMessageList = function() {
   const pathParts = window.location.pathname.split('/');
   const client = pathParts[1]; // Le premier segment après le slash
   
-  // Choisir la route appropriée
+  // Utiliser Supabase si disponible, sinon fallback vers l'API
+  if (window.SupabaseClient && window.SupabaseClient.getMessagesByClient) {
+    // Utiliser Supabase
+    window.SupabaseClient.getMessagesByClient(client || 'sparklab')
+      .then(response => {
+        if (dreamsList) {
+          response.forEach(row => {
+            appendNewDream(row.content, row.id, row.created_at);
+          });
+        } else {
+          setCurrentMessage(response);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur Supabase:', error);
+        // Fallback vers l'API Express
+        fallbackToExpressAPI(client);
+      });
+  } else {
+    // Fallback vers l'API Express
+    fallbackToExpressAPI(client);
+  }
+  
+  return true;
+};
+
+// Fonction de fallback vers l'API Express
+function fallbackToExpressAPI(client) {
   const apiUrl = client && client !== 'message' ? `/${client}/getDreams` : "/getDreams";
   
-  // request the dreams from our app's json file
   fetch(apiUrl, {})
     .then(res => res.json())
     .then(response => {
-      // If we are on  the backoffice dreamsList exists, if not, not !
       if (dreamsList) {
         response.forEach(row => {
-          appendNewDream(row.content, row.id, row.created_at); // Changed from .dream and .pubdate
+          appendNewDream(row.content, row.id, row.created_at);
         });
       } else {
-        // We are on front display dreamsList does not exists but currentMessage is the string we need to addresss
         setCurrentMessage(response);
       }
+    })
+    .catch(error => {
+      console.error('Erreur API Express:', error);
     });
-   return true;
-};
+}
 
 // a helper function that creates a list item for a given dream
 const appendNewDream = (dream, id, created_at) => { // Changed parameter name
@@ -88,13 +120,43 @@ dreamsForm.onsubmit = event => {
   // stop our form submission from refreshing the page
   event.preventDefault();
 
-  const data = { dream: dreamInput.value };
+  const dreamContent = dreamInput.value;
 
   // Détecter le client depuis l'URL
   const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1]; // Le premier segment après le slash
+  const client = pathParts[1] || 'sparklab'; // Le premier segment après le slash
   
-  // Choisir la route appropriée
+  // Utiliser Supabase si disponible, sinon fallback vers l'API
+  if (window.SupabaseClient && window.SupabaseClient.addMessage) {
+    // Utiliser Supabase
+    window.SupabaseClient.addMessage(dreamContent, client)
+      .then(success => {
+        if (success) {
+          console.log('Message ajouté via Supabase');
+          dreams.push(dreamContent);
+          getMessageList();
+          dreamInput.value = "";
+          dreamInput.focus();
+        } else {
+          console.error('Erreur ajout message Supabase');
+          // Fallback vers l'API Express
+          fallbackAddMessage(dreamContent, client);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur Supabase:', error);
+        // Fallback vers l'API Express
+        fallbackAddMessage(dreamContent, client);
+      });
+  } else {
+    // Fallback vers l'API Express
+    fallbackAddMessage(dreamContent, client);
+  }
+};
+
+// Fonction de fallback pour ajouter un message via l'API Express
+function fallbackAddMessage(dreamContent, client) {
+  const data = { dream: dreamContent };
   const apiUrl = client && client !== 'message' ? `/${client}/addDream` : "/addDream";
 
   fetch(apiUrl, {
@@ -103,16 +165,16 @@ dreamsForm.onsubmit = event => {
     headers: { "Content-Type": "application/json" }
   })
     .then(res => res.json())
-    .then(response => {});
-  // get dream value and add it to the list
-  dreams.push(dreamInput.value);
-  //appendNewDream(dreamInput.value);
-  getMessageList();
-
-  // reset form
-  dreamInput.value = "";
-  dreamInput.focus();
-};
+    .then(response => {
+      dreams.push(dreamContent);
+      getMessageList();
+      dreamInput.value = "";
+      dreamInput.focus();
+    })
+    .catch(error => {
+      console.error('Erreur API Express:', error);
+    });
+}
 
 clearButton.addEventListener("click", event => {
   fetch("/clearDreams", {})

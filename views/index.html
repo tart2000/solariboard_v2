@@ -111,12 +111,22 @@
     <script src="/lib/Three.js"></script>
     <script src="/lib/stats.js"></script>
     <script src="/lib/events.js"></script>
+    <script src="/lib/supabase.js"></script>
     <script src="/app/SolariTexture.js"></script>
     <script src="/app/SolariRow.js"></script>
     <script src="/app/SolariFlap.js"></script>
     <script src="/app/Solari.js"></script>
     <script src="/client.js" defer></script>
     <script>
+      // Initialiser Supabase
+      if (window.SupabaseClient) {
+        window.SupabaseClient.init().then(() => {
+          console.log('Supabase initialisé avec succès');
+        }).catch(error => {
+          console.error('Erreur initialisation Supabase:', error);
+        });
+      }
+      
       //fullscreen
       var elem = document.getElementById("fullscreen");
       var fsBtn = document.getElementById("fs-btn");
