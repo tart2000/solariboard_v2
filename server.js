@@ -11,6 +11,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
+// Servir les fichiers statiques avec les bons types MIME
+app.use('/lib', express.static(path.join(__dirname, 'public/lib')));
+app.use('/app', express.static(path.join(__dirname, 'public/app')));
+app.use('/img', express.static(path.join(__dirname, 'public/img')));
+app.use('/sound', express.static(path.join(__dirname, 'public/sound')));
+app.use('/plugin', express.static(path.join(__dirname, 'public/plugin')));
+
 // Endpoint pour récupérer la configuration Supabase
 app.get("/api/config", (request, response) => {
   const config = {
