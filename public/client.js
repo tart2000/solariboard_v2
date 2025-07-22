@@ -141,11 +141,12 @@ if (dreamsForm) {
       .then(success => {
         if (success) {
           console.log('Message ajouté avec succès via Supabase');
-          // Recharger la liste des messages
-          getMessageList();
           // Vider le champ de saisie
           dreamInput.value = "";
           dreamInput.focus();
+          
+          // Afficher le popup de confirmation
+          showSuccessPopup();
         } else {
           console.error('Erreur lors de l\'ajout du message via Supabase');
         }
@@ -251,4 +252,22 @@ function wordWrap(str, charMax) {
 // Ne charger les messages automatiquement que sur la page Solari
 if (isSolariPage) {
   getMessageList();
+}
+
+// Fonction pour afficher le popup de confirmation
+function showSuccessPopup() {
+  const popup = document.getElementById('success-popup');
+  if (popup) {
+    // Afficher le popup
+    popup.style.display = 'block';
+    
+    // Masquer le popup après 2 secondes
+    setTimeout(() => {
+      popup.style.animation = 'popupFadeOut 0.3s ease-out';
+      setTimeout(() => {
+        popup.style.display = 'none';
+        popup.style.animation = '';
+      }, 300);
+    }, 2000);
+  }
 }
