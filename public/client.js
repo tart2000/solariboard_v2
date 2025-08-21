@@ -62,6 +62,27 @@ var isSolariPage = !isMessagePage && !isMessagesPage;
 
 debugLog('Client.js chargé - Page: ' + (isSolariPage ? 'Solari' : (isMessagePage ? 'Message' : 'Messages')));
 
+// Fonction helper pour détecter le client depuis l'URL
+function getClientFromURL() {
+  var pathParts = window.location.pathname.split('/');
+  var client = 'pocstudio'; // Client par défaut
+  
+  // Si on est sur /:client/messages, le client est le premier segment
+  if (pathParts.length >= 2 && pathParts[2] === 'messages') {
+    client = pathParts[1];
+  }
+  // Si on est sur /:client/message, le client est le premier segment
+  else if (pathParts.length >= 2 && pathParts[2] === 'message') {
+    client = pathParts[1];
+  }
+  // Si on est sur /:client (page Solari), le client est le premier segment
+  else if (pathParts.length >= 2 && pathParts[1] !== 'messages' && pathParts[1] !== 'message') {
+    client = pathParts[1];
+  }
+  
+  return client;
+}
+
 function setCurrentMessage(m) {
   // Si aucun message ou tableau vide
   if (!m || m.length === 0) {
@@ -92,13 +113,14 @@ function setCurrentMessage(m) {
 // --------------------------------------------------------
 var getMessageList = function() {
   // Détecter le client depuis l'URL
-  var pathParts = window.location.pathname.split('/');
-  var client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
+  var client = getClientFromURL();
   
   debugLog('Chargement des messages en cours pour client: ' + client);
   console.log('Chargement des messages en cours');
   console.log('Page message:', isMessagePage);
   console.log('Page Solari:', isSolariPage);
+  console.log('Page messages:', isMessagesPage);
+  console.log('Client détecté:', client);
   
   // Vider la liste si on est sur la page messages (modération)
   if (isMessagesPage && dreamsList) {
@@ -150,16 +172,31 @@ var appendNewDream = function(dream, id, created_at) { // Changed parameter name
   var messageRow = document.importNode(template.content, true);
   var pTxt = messageRow.querySelector("p"); // Insterting message text
   var delBut = messageRow.querySelector("button"); // Insterting message id
-  var datElt = messageRow.querySelector("small");
+  var datElt = messageRow.querySelector("small.timestamp");
   pTxt.textContent = dream;
   delBut.id = id;
 
-  // Parse ISO date string
+  // Formatage relatif simple
   var date = new Date(created_at);
-  var d = date.toISOString().split('T')[0];
-  var h = date.toTimeString().split(' ')[0];
+  var now = new Date();
+  var diffMs = now - date;
+  var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  var diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  var diffMinutes = Math.floor(diffMs / (1000 * 60));
+  
+  var timeText;
+  if (diffDays > 0) {
+    timeText = "Il y a " + diffDays + " jour" + (diffDays > 1 ? "s" : "");
+  } else if (diffHours > 0) {
+    timeText = "Il y a " + diffHours + " heure" + (diffHours > 1 ? "s" : "");
+  } else if (diffMinutes > 0) {
+    timeText = "Il y a " + diffMinutes + " minute" + (diffMinutes > 1 ? "s" : "");
+  } else {
+    timeText = "À l'instant";
+  }
+  
   datElt.title = created_at;
-  datElt.innerHTML = d + " " + h;
+  datElt.innerHTML = timeText;
   divList.appendChild(messageRow);
 
   // Adding a listener
@@ -181,8 +218,7 @@ if (dreamsForm) {
   }
 
   // Détecter le client depuis l'URL
-  var pathParts = window.location.pathname.split('/');
-  var client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
+  var client = getClientFromURL();
   
   console.log('Ajout de message en cours');
   
@@ -220,8 +256,7 @@ if (clearButton) {
   event.preventDefault();
   
   // Détecter le client depuis l'URL
-  var pathParts = window.location.pathname.split('/');
-  var client = pathParts[1] || 'pocstudio';
+  var client = getClientFromURL();
   
   console.log('Suppression de tous les messages en cours');
   

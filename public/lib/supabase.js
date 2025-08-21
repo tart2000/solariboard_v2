@@ -7,7 +7,7 @@ var apiReady = false;
 // Fonction pour initialiser l'API REST
 function initSupabase() {
   return new Promise(function(resolve, reject) {
-    debugLog('Initialisation API REST...');
+    console.log('Initialisation API REST...');
     
     // Test simple pour vérifier que l'API fonctionne
     var xhr = new XMLHttpRequest();
@@ -16,10 +16,10 @@ function initSupabase() {
     
     if (xhr.status === 200) {
       apiReady = true;
-      debugLog('API REST initialisée avec succès');
+      console.log('API REST initialisée avec succès');
       resolve();
     } else {
-      debugLog('ERREUR: API REST non disponible - Status: ' + xhr.status);
+      console.log('ERREUR: API REST non disponible - Status: ' + xhr.status);
       reject(new Error('API REST non disponible'));
     }
   });
@@ -29,7 +29,7 @@ function initSupabase() {
 function getMessagesByClient(client) {
   return new Promise(function(resolve) {
     try {
-      debugLog('Récupération messages via API REST pour client: ' + client);
+      console.log('Récupération messages via API REST pour client: ' + client);
       
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/api/messages/' + client, false);
@@ -37,14 +37,14 @@ function getMessagesByClient(client) {
       
       if (xhr.status === 200) {
         var messages = JSON.parse(xhr.responseText);
-        debugLog('Messages récupérés via API REST: ' + messages.length + ' messages');
+        console.log('Messages récupérés via API REST: ' + messages.length + ' messages');
         resolve(messages);
       } else {
-        debugLog('ERREUR API REST: ' + xhr.status);
+        console.log('ERREUR API REST: ' + xhr.status);
         resolve([]);
       }
     } catch (error) {
-      debugLog('ERREUR getMessagesByClient: ' + error.message);
+      console.log('ERREUR getMessagesByClient: ' + error.message);
       resolve([]);
     }
   });
@@ -54,7 +54,7 @@ function getMessagesByClient(client) {
 function addMessage(content, client) {
   return new Promise(function(resolve) {
     try {
-      debugLog('Ajout message via API REST pour client: ' + client);
+      console.log('Ajout message via API REST pour client: ' + client);
       
       var xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/messages/add', false);
@@ -67,18 +67,18 @@ function addMessage(content, client) {
       if (xhr.status === 200) {
         var result = JSON.parse(xhr.responseText);
         if (result.success) {
-          debugLog('Message ajouté avec succès via API REST');
+          console.log('Message ajouté avec succès via API REST');
           resolve(true);
         } else {
-          debugLog('ERREUR ajout message via API REST');
+          console.log('ERREUR ajout message via API REST');
           resolve(false);
         }
       } else {
-        debugLog('ERREUR API REST ajout: ' + xhr.status);
+        console.log('ERREUR API REST ajout: ' + xhr.status);
         resolve(false);
       }
     } catch (error) {
-      debugLog('ERREUR addMessage: ' + error.message);
+      console.log('ERREUR addMessage: ' + error.message);
       resolve(false);
     }
   });
@@ -88,7 +88,7 @@ function addMessage(content, client) {
 function deleteMessage(id) {
   return new Promise(function(resolve) {
     try {
-      debugLog('Suppression message via API REST: ' + id);
+      console.log('Suppression message via API REST: ' + id);
       
       var xhr = new XMLHttpRequest();
       xhr.open('DELETE', '/api/messages/' + id, false);
@@ -97,18 +97,18 @@ function deleteMessage(id) {
       if (xhr.status === 200) {
         var result = JSON.parse(xhr.responseText);
         if (result.success) {
-          debugLog('Message supprimé avec succès via API REST');
+          console.log('Message supprimé avec succès via API REST');
           resolve(true);
         } else {
-          debugLog('ERREUR suppression message via API REST');
+          console.log('ERREUR suppression message via API REST');
           resolve(false);
         }
       } else {
-        debugLog('ERREUR API REST suppression: ' + xhr.status);
+        console.log('ERREUR API REST suppression: ' + xhr.status);
         resolve(false);
       }
     } catch (error) {
-      debugLog('ERREUR deleteMessage: ' + error.message);
+      console.log('ERREUR deleteMessage: ' + error.message);
       resolve(false);
     }
   });
@@ -118,7 +118,7 @@ function deleteMessage(id) {
 function deleteAllMessages(client) {
   return new Promise(function(resolve) {
     try {
-      debugLog('Suppression tous les messages via API REST pour client: ' + client);
+      console.log('Suppression tous les messages via API REST pour client: ' + client);
       
       var xhr = new XMLHttpRequest();
       xhr.open('DELETE', '/api/messages/clear/' + client, false);
@@ -127,18 +127,18 @@ function deleteAllMessages(client) {
       if (xhr.status === 200) {
         var result = JSON.parse(xhr.responseText);
         if (result.success) {
-          debugLog('Tous les messages supprimés avec succès via API REST');
+          console.log('Tous les messages supprimés avec succès via API REST');
           resolve(true);
         } else {
-          debugLog('ERREUR suppression tous les messages via API REST');
+          console.log('ERREUR suppression tous les messages via API REST');
           resolve(false);
         }
       } else {
-        debugLog('ERREUR API REST suppression tous: ' + xhr.status);
+        console.log('ERREUR API REST suppression tous: ' + xhr.status);
         resolve(false);
       }
     } catch (error) {
-      debugLog('ERREUR deleteAllMessages: ' + error.message);
+      console.log('ERREUR deleteAllMessages: ' + error.message);
       resolve(false);
     }
   });

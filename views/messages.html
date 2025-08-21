@@ -64,24 +64,23 @@
         aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
-      <small class="timeago"></small>
+      <small class="timestamp"></small>
     </div>
   </template>
 
-  <script src="/timetogo.js" defer></script>
+
   
   <script>
-    // Initialiser Supabase
-    if (window.SupabaseClient) {
-      window.SupabaseClient.init().then(() => {
-        console.log('Supabase initialisé avec succès sur la page messages');
-        // Charger les messages une fois Supabase initialisé
+    // Attendre que le DOM soit chargé et que client.js soit exécuté
+    document.addEventListener('DOMContentLoaded', function() {
+      // Attendre un peu pour que client.js soit chargé
+      setTimeout(function() {
         if (typeof getMessageList === 'function') {
           getMessageList();
+        } else {
+          console.error('getMessageList non trouvée');
         }
-      }).catch(error => {
-        console.error('Erreur initialisation Supabase:', error);
-      });
-    }
+      }, 100);
+    });
   </script>
 </body> 
