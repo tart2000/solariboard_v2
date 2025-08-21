@@ -1,26 +1,72 @@
 // client-side js
 // run by the browser each time your view template referencing it is loaded
 
-const dreams = [];
+var dreams = [];
+
+// Fonction de debug
+function debugLog(message) {
+  var debugDiv = document.getElementById('debug-log');
+  if (debugDiv) {
+    var time = new Date().toLocaleTimeString();
+    debugDiv.innerHTML += '<div>[' + time + '] ' + message + '</div>';
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+  }
+  console.log(message);
+}
+
+// Fonction de fallback vers l'API Express (si Supabase ne fonctionne pas)
+function fallbackToExpressAPI(client) {
+  debugLog('Utilisation du fallback Express API pour client: ' + client);
+  
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/api/messages/' + client, false); // Synchronous pour simplicité
+  
+  try {
+    xhr.send();
+    
+    if (xhr.status === 200) {
+      var messages = JSON.parse(xhr.responseText);
+      debugLog('Messages récupérés via fallback: ' + messages.length + ' messages');
+      
+      // Si on est sur la page messages (modération), afficher dans la liste
+      if (isMessagesPage && dreamsList) {
+        messages.forEach(function(row) {
+          appendNewDream(row.content, row.id, row.created_at);
+        });
+      }
+      // Si on est sur la page Solari, mettre à jour le message courant
+      if (isSolariPage) {
+        setCurrentMessage(messages);
+      }
+    } else {
+      debugLog('Erreur fallback API: ' + xhr.status);
+    }
+  } catch (error) {
+    debugLog('Erreur fallback API: ' + error.message);
+  }
+}
 
 // define variables that reference elements on our page
-const dreamsForm = document.forms[0];
-const dreamInput = dreamsForm ? dreamsForm.elements["dream"] : null;
-const dreamsList = document.getElementById("dreams");
-const clearButton = document.querySelector("#clear-dreams");
+var dreamsForm = document.forms[0];
+var dreamInput = dreamsForm ? dreamsForm.elements["dream"] : null;
+var dreamsList = document.getElementById("dreams");
+var clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Rendez-vous sur /message pour envoyer votre premier message"; // Message de fallback
 var lastID = 0;
 var index = 0;
 
 // Détecter si on est sur la page message, messages ou sur la page Solari
-const isMessagePage = window.location.pathname.includes('/message') && !window.location.pathname.includes('/messages');
-const isMessagesPage = window.location.pathname.includes('/messages');
-const isSolariPage = !isMessagePage && !isMessagesPage;
+var isMessagePage = window.location.pathname.indexOf('/message') !== -1 && window.location.pathname.indexOf('/messages') === -1;
+var isMessagesPage = window.location.pathname.indexOf('/messages') !== -1;
+var isSolariPage = !isMessagePage && !isMessagesPage;
+
+debugLog('Client.js chargé - Page: ' + (isSolariPage ? 'Solari' : (isMessagePage ? 'Message' : 'Messages')));
 
 function setCurrentMessage(m) {
   // Si aucun message ou tableau vide
   if (!m || m.length === 0) {
     currentMessage = "Rendez-vous sur /message pour envoyer votre premier message";
+    debugLog('Aucun message trouvé, message par défaut affiché');
     return;
   }
   
@@ -36,6 +82,7 @@ function setCurrentMessage(m) {
     }
   }
   currentMessage = m[index].content; // Changed from .dream to .content
+  debugLog('Message courant défini: ' + currentMessage.substring(0, 50) + '...');
 }
 
 // --------------------------------------------------------
@@ -45,9 +92,10 @@ function setCurrentMessage(m) {
 // --------------------------------------------------------
 var getMessageList = function() {
   // Détecter le client depuis l'URL
-  const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
+  var pathParts = window.location.pathname.split('/');
+  var client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
   
+  debugLog('Chargement des messages en cours pour client: ' + client);
   console.log('Chargement des messages en cours');
   console.log('Page message:', isMessagePage);
   console.log('Page Solari:', isSolariPage);
@@ -59,15 +107,17 @@ var getMessageList = function() {
   
   // Utiliser Supabase si disponible, sinon fallback vers l'API
   if (window.SupabaseClient && window.SupabaseClient.getMessagesByClient) {
+    debugLog('Utilisation de Supabase pour récupérer les messages');
     console.log('Utilisation de Supabase pour récupérer les messages');
     // Utiliser Supabase
     window.SupabaseClient.getMessagesByClient(client)
-      .then(response => {
+      .then(function(response) {
+        debugLog('Messages récupérés: ' + (response ? response.length : 0) + ' messages');
         console.log('Messages récupérés:', response);
         
         // Si on est sur la page messages (modération), afficher dans la liste
         if (isMessagesPage && dreamsList) {
-          response.forEach(row => {
+          response.forEach(function(row) {
             appendNewDream(row.content, row.id, row.created_at);
           });
         }
@@ -76,13 +126,16 @@ var getMessageList = function() {
           setCurrentMessage(response);
         }
       })
-      .catch(error => {
+      .catch(function(error) {
+        debugLog('Erreur Supabase: ' + error.message);
         console.error('Erreur Supabase:', error);
         // Fallback vers l'API Express
         fallbackToExpressAPI(client);
       });
   } else {
+    debugLog('Supabase non disponible, utilisation du fallback');
     console.error('Supabase non disponible');
+    fallbackToExpressAPI(client);
   }
   
   return true;
@@ -91,7 +144,7 @@ var getMessageList = function() {
 
 
 // a helper function that creates a list item for a given dream
-const appendNewDream = (dream, id, created_at) => { // Changed parameter name
+var appendNewDream = function(dream, id, created_at) { // Changed parameter name
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
@@ -115,11 +168,11 @@ const appendNewDream = (dream, id, created_at) => { // Changed parameter name
 
 // listen for the form to be submitted and add a new dream when it is
 if (dreamsForm) {
-  dreamsForm.onsubmit = event => {
+  dreamsForm.onsubmit = function(event) {
   // stop our form submission from refreshing the page
   event.preventDefault();
 
-  const messageContent = dreamInput.value;
+  var messageContent = dreamInput.value;
   
   // Vérifier que le message n'est pas vide
   if (!messageContent.trim()) {
@@ -128,8 +181,8 @@ if (dreamsForm) {
   }
 
   // Détecter le client depuis l'URL
-  const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
+  var pathParts = window.location.pathname.split('/');
+  var client = pathParts[1] || 'pocstudio'; // Le premier segment après le slash
   
   console.log('Ajout de message en cours');
   
@@ -138,7 +191,7 @@ if (dreamsForm) {
     console.log('Utilisation de Supabase pour ajouter le message');
     // Utiliser Supabase
     window.SupabaseClient.addMessage(messageContent, client)
-      .then(success => {
+      .then(function(success) {
         if (success) {
           console.log('Message ajouté avec succès via Supabase');
           // Vider le champ de saisie
@@ -151,7 +204,7 @@ if (dreamsForm) {
           console.error('Erreur lors de l\'ajout du message via Supabase');
         }
       })
-      .catch(error => {
+      .catch(function(error) {
         console.error('Erreur Supabase lors de l\'ajout:', error);
       });
   } else {
@@ -163,12 +216,12 @@ if (dreamsForm) {
 
 
 if (clearButton) {
-  clearButton.addEventListener("click", event => {
+  clearButton.addEventListener("click", function(event) {
   event.preventDefault();
   
   // Détecter le client depuis l'URL
-  const pathParts = window.location.pathname.split('/');
-  const client = pathParts[1] || 'pocstudio';
+  var pathParts = window.location.pathname.split('/');
+  var client = pathParts[1] || 'pocstudio';
   
   console.log('Suppression de tous les messages en cours');
   
@@ -177,7 +230,7 @@ if (clearButton) {
     console.log('Utilisation de Supabase pour supprimer tous les messages');
     
     window.SupabaseClient.deleteAllMessages(client)
-      .then(success => {
+      .then(function(success) {
         if (success) {
           console.log('Tous les messages supprimés avec succès via Supabase');
           // Vider la liste dans le DOM
@@ -188,17 +241,18 @@ if (clearButton) {
           console.error('Erreur lors de la suppression de tous les messages via Supabase');
         }
       })
-      .catch(error => {
+      .catch(function(error) {
         console.error('Erreur Supabase lors de la suppression de tous les messages:', error);
       });
   } else {
     console.error('Supabase non disponible pour la suppression de tous les messages');
   }
 });
+}
 
 var delFunction = function() {
-  const messageId = this.id;
-  const divASupp = this.parentElement;
+  var messageId = this.id;
+  var divASupp = this.parentElement;
   
   console.log('Suppression du message en cours');
   
@@ -207,7 +261,7 @@ var delFunction = function() {
     console.log('Utilisation de Supabase pour supprimer le message');
     
     window.SupabaseClient.deleteMessage(messageId)
-      .then(success => {
+      .then(function(success) {
         if (success) {
           console.log('Message supprimé avec succès via Supabase');
           // Supprimer l'élément du DOM
@@ -218,29 +272,28 @@ var delFunction = function() {
           console.error('Erreur lors de la suppression du message via Supabase');
         }
       })
-      .catch(error => {
+      .catch(function(error) {
         console.error('Erreur Supabase lors de la suppression:', error);
       });
   } else {
     console.error('Supabase non disponible pour la suppression');
   }
 };
-}
 
 // Test wordwrap
 function wordWrap(str, charMax) {
-  let arr = [];
-  let space = /\s/;
+  var arr = [];
+  var space = /\s/;
 
-  const words = str.split(space);
+  var words = str.split(space);
   // push first word into new array
   if (words[0].length) {
     arr.push(words[0]);
   }
 
-  for (let i = 1; i < words.length; i++) {
+  for (var i = 1; i < words.length; i++) {
     if (words[i].length + arr[arr.length - 1].length < charMax) {
-      arr[arr.length - 1] = `${arr[arr.length - 1]} ${words[i]}`;
+      arr[arr.length - 1] = arr[arr.length - 1] + " " + words[i];
     } else {
       arr.push(words[i]);
     }
@@ -256,15 +309,15 @@ if (isSolariPage) {
 
 // Fonction pour afficher le popup de confirmation
 function showSuccessPopup() {
-  const popup = document.getElementById('success-popup');
+  var popup = document.getElementById('success-popup');
   if (popup) {
     // Afficher le popup
     popup.style.display = 'block';
     
     // Masquer le popup après 2 secondes
-    setTimeout(() => {
+    setTimeout(function() {
       popup.style.animation = 'popupFadeOut 0.3s ease-out';
-      setTimeout(() => {
+      setTimeout(function() {
         popup.style.display = 'none';
         popup.style.animation = '';
       }, 300);

@@ -20,6 +20,12 @@
     <script src="https://unpkg.com/@phosphor-icons/web@2.0.3/src/index.js"></script>
   </head>
   <body id="fullscreen">
+    <!-- Debug panel pour smart TV -->
+    <div id="debug-panel" style="position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.8);color:white;padding:10px;font-size:12px;z-index:9999;max-width:300px;max-height:200px;overflow:auto;font-family:monospace;border:1px solid #333;">
+      <div><strong>Debug Smart TV</strong></div>
+      <div id="debug-log"></div>
+    </div>
+
     <!-- Block for the message that gives the address on the screen -->
     <div id="screen">
       <div id="link">
@@ -66,13 +72,113 @@
     <script src="/app/Solari.js"></script>
     <script src="/client.js" defer></script>
     <script>
+      // Fonction de debug pour smart TV
+      function debugLog(message) {
+        var debugDiv = document.getElementById('debug-log');
+        if (debugDiv) {
+          var time = new Date().toLocaleTimeString();
+          debugDiv.innerHTML += '<div>[' + time + '] ' + message + '</div>';
+          debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+        console.log(message); // Garder aussi la console pour les navigateurs modernes
+      }
+
+      // Test de compatibilité ES6
+      function testES6Compatibility() {
+        try {
+          // Test const/let
+          var testConst = 'test';
+          var testLet = 'test2';
+          
+          // Test arrow function
+          var testArrow = function() { return 'test'; };
+          
+          // Test template literals
+          var testTemplate = testConst + ' ' + testLet;
+          
+          // Test includes
+          var testIncludes = 'test'.indexOf('t') !== -1;
+          
+          debugLog('ES6: Compatible');
+          return true;
+        } catch (e) {
+          debugLog('ES6: ERREUR - ' + e.message);
+          return false;
+        }
+      }
+
+      // Test WebGL
+      function testWebGL() {
+        try {
+          var canvas = document.createElement('canvas');
+          var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (gl) {
+            debugLog('WebGL: Compatible');
+            return true;
+          } else {
+            debugLog('WebGL: Non supporté');
+            return false;
+          }
+        } catch (e) {
+          debugLog('WebGL: ERREUR - ' + e.message);
+          return false;
+        }
+      }
+
+      // Test fetch
+      function testFetch() {
+        try {
+          if (typeof fetch !== 'undefined') {
+            debugLog('Fetch: Compatible');
+            return true;
+          } else {
+            debugLog('Fetch: Non supporté');
+            return false;
+          }
+        } catch (e) {
+          debugLog('Fetch: ERREUR - ' + e.message);
+          return false;
+        }
+      }
+
+      // Test XMLHttpRequest
+      function testXHR() {
+        try {
+          if (typeof XMLHttpRequest !== 'undefined') {
+            debugLog('XHR: Compatible');
+            return true;
+          } else {
+            debugLog('XHR: Non supporté');
+            return false;
+          }
+        } catch (e) {
+          debugLog('XHR: ERREUR - ' + e.message);
+          return false;
+        }
+      }
+
+      // Tests au démarrage
+      debugLog('Démarrage application...');
+      debugLog('User Agent: ' + navigator.userAgent);
+      
+      var es6Ok = testES6Compatibility();
+      var webglOk = testWebGL();
+      var fetchOk = testFetch();
+      var xhrOk = testXHR();
+      
+      debugLog('Tests terminés');
+
       // Initialiser Supabase
       if (window.SupabaseClient) {
-        window.SupabaseClient.init().then(() => {
-          console.log('Supabase initialisé avec succès');
-        }).catch(error => {
-          console.error('Erreur initialisation Supabase:', error);
+        debugLog('Initialisation Supabase...');
+        window.SupabaseClient.init().then(function() {
+          debugLog('Supabase initialisé avec succès');
+        }).catch(function(error) {
+          debugLog('Erreur initialisation Supabase: ' + error.message);
+          // Continuer sans Supabase - l'app fonctionnera avec le message par défaut
         });
+      } else {
+        debugLog('SupabaseClient non disponible');
       }
       
       //fullscreen

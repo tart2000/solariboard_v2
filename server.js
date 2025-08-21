@@ -51,6 +51,17 @@ app.get("/api/config", (request, response) => {
   response.json(config);
 });
 
+// Endpoint de fallback pour récupérer les messages (si Supabase ne fonctionne pas)
+app.get("/api/messages/:client", (request, response) => {
+  const client = request.params.client;
+  
+  console.log('Fallback API: Récupération messages pour client:', client);
+  
+  // Pour l'instant, retourner un tableau vide
+  // Vous pouvez implémenter une vraie logique de base de données ici si nécessaire
+  response.json([]);
+});
+
 // Chemin vers les fichiers de données
 const clientsFile = path.join(__dirname, "data", "clients.json");
 

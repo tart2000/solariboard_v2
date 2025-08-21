@@ -1,178 +1,242 @@
 // Configuration Supabase pour le client-side
 // Les variables d'environnement seront injectées par le serveur
-let supabaseUrl = 'your-supabase-url';
-let supabaseAnonKey = 'your-supabase-anon-key';
+var supabaseUrl = 'your-supabase-url';
+var supabaseAnonKey = 'your-supabase-anon-key';
 
 // Créer le client Supabase
-const supabase = window.supabase || null;
+var supabase = window.supabase || null;
 
 // Fonction pour initialiser Supabase
-async function initSupabase() {
-  if (typeof window !== 'undefined' && !window.supabase) {
-    try {
-      // Récupérer la configuration depuis le serveur
-      const response = await fetch('/api/config');
-      const config = await response.json();
-      
-      supabaseUrl = config.supabaseUrl;
-      supabaseAnonKey = config.supabaseAnonKey;
-      
-      console.log('Configuration Supabase récupérée');
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('URL ou clé Supabase manquante');
-      }
-      
-      // Charger Supabase depuis CDN si pas encore chargé
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/@supabase/supabase-js@2';
-      script.onload = function() {
-        try {
-          window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-          supabaseReady = true;
-          console.log('Supabase initialisé avec succès');
-        } catch (error) {
-          console.error('Erreur création client Supabase:', error);
+function initSupabase() {
+  return new Promise(function(resolve, reject) {
+    if (typeof window !== 'undefined' && !window.supabase) {
+      try {
+        // Récupérer la configuration depuis le serveur
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/config', false); // Synchronous pour simplicité
+        xhr.send();
+        
+        if (xhr.status === 200) {
+          var config = JSON.parse(xhr.responseText);
+          
+          supabaseUrl = config.supabaseUrl;
+          supabaseAnonKey = config.supabaseAnonKey;
+          
+          console.log('Configuration Supabase récupérée');
+          
+          if (!supabaseUrl || !supabaseAnonKey) {
+            reject(new Error('URL ou clé Supabase manquante'));
+            return;
+          }
+          
+          // Charger Supabase depuis CDN si pas encore chargé
+          var script = document.createElement('script');
+          script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+          script.onload = function() {
+            try {
+              window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+              supabaseReady = true;
+              console.log('Supabase initialisé avec succès');
+              resolve();
+            } catch (error) {
+              console.error('Erreur création client Supabase:', error);
+              reject(error);
+            }
+          };
+          script.onerror = function() {
+            reject(new Error('Erreur chargement script Supabase'));
+          };
+          document.head.appendChild(script);
+        } else {
+          reject(new Error('Erreur HTTP: ' + xhr.status));
         }
-      };
-      document.head.appendChild(script);
-    } catch (error) {
-      console.error('Erreur chargement config Supabase:', error);
+      } catch (error) {
+        console.error('Erreur chargement config Supabase:', error);
+        reject(error);
+      }
+    } else {
+      // Supabase déjà initialisé
+      resolve();
     }
-  }
+  });
 }
 
 // Fonction pour récupérer les messages d'un client
-async function getMessagesByClient(client) {
-  try {
-    // Attendre que Supabase soit prêt
-    await waitForSupabase();
-    
-    if (!window.supabase) {
-      console.error('Supabase non initialisé');
-      return [];
+function getMessagesByClient(client) {
+  return new Promise(function(resolve) {
+    try {
+      // Attendre que Supabase soit prêt
+      waitForSupabase().then(function() {
+        if (!window.supabase) {
+          console.error('Supabase non initialisé');
+          resolve([]);
+          return;
+        }
+        
+        console.log('Récupération messages pour client:', client);
+        
+        window.supabase
+          .from('messages')
+          .select('*')
+          .eq('client', client)
+          .order('created_at', { ascending: false })
+          .then(function(result) {
+            var data = result.data;
+            var error = result.error;
+            
+            if (error) {
+              console.error('Erreur Supabase:', error);
+              resolve([]);
+              return;
+            }
+            
+            console.log('Messages récupérés avec succès');
+            resolve(data || []);
+          })
+          .catch(function(error) {
+            console.error('Erreur getMessagesByClient:', error);
+            resolve([]);
+          });
+      });
+    } catch (error) {
+      console.error('Erreur getMessagesByClient:', error);
+      resolve([]);
     }
-    
-    console.log('Récupération messages pour client:', client);
-    
-    const { data, error } = await window.supabase
-      .from('messages')
-      .select('*')
-      .eq('client', client)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Erreur Supabase:', error);
-      return [];
-    }
-    
-    console.log('Messages récupérés avec succès');
-    return data || [];
-  } catch (error) {
-    console.error('Erreur getMessagesByClient:', error);
-    return [];
-  }
+  });
 }
 
 // Fonction pour ajouter un message
-async function addMessage(content, client) {
-  try {
-    // Attendre que Supabase soit prêt
-    await waitForSupabase();
-    
-    if (!window.supabase) {
-      console.error('Supabase non initialisé');
-      return false;
-    }
-    
-    const { data, error } = await window.supabase
-      .from('messages')
-      .insert([
-        {
-          content: content,
-          client: client
-          // created_at sera automatiquement généré par Supabase
+function addMessage(content, client) {
+  return new Promise(function(resolve) {
+    try {
+      // Attendre que Supabase soit prêt
+      waitForSupabase().then(function() {
+        if (!window.supabase) {
+          console.error('Supabase non initialisé');
+          resolve(false);
+          return;
         }
-      ]);
-    
-    if (error) {
-      console.error('Erreur ajout message:', error);
-      return false;
+        
+        window.supabase
+          .from('messages')
+          .insert([
+            {
+              content: content,
+              client: client
+              // created_at sera automatiquement généré par Supabase
+            }
+          ])
+          .then(function(result) {
+            var error = result.error;
+            
+            if (error) {
+              console.error('Erreur ajout message:', error);
+              resolve(false);
+              return;
+            }
+            
+            resolve(true);
+          })
+          .catch(function(error) {
+            console.error('Erreur addMessage:', error);
+            resolve(false);
+          });
+      });
+    } catch (error) {
+      console.error('Erreur addMessage:', error);
+      resolve(false);
     }
-    
-    return true;
-  } catch (error) {
-    console.error('Erreur addMessage:', error);
-    return false;
-  }
+  });
 }
 
 // Fonction pour supprimer un message
-async function deleteMessage(id) {
-  try {
-    if (!window.supabase) {
-      console.error('Supabase non initialisé');
-      return false;
+function deleteMessage(id) {
+  return new Promise(function(resolve) {
+    try {
+      if (!window.supabase) {
+        console.error('Supabase non initialisé');
+        resolve(false);
+        return;
+      }
+      
+      console.log('Suppression du message en cours');
+      
+      window.supabase
+        .from('messages')
+        .delete()
+        .eq('id', id)
+        .then(function(result) {
+          var error = result.error;
+          
+          if (error) {
+            console.error('Erreur suppression message:', error);
+            resolve(false);
+            return;
+          }
+          
+          console.log('Message supprimé avec succès');
+          resolve(true);
+        })
+        .catch(function(error) {
+          console.error('Erreur deleteMessage:', error);
+          resolve(false);
+        });
+    } catch (error) {
+      console.error('Erreur deleteMessage:', error);
+      resolve(false);
     }
-    
-    console.log('Suppression du message en cours');
-    
-    const { error } = await window.supabase
-      .from('messages')
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Erreur suppression message:', error);
-      return false;
-    }
-    
-    console.log('Message supprimé avec succès');
-    return true;
-  } catch (error) {
-    console.error('Erreur deleteMessage:', error);
-    return false;
-  }
+  });
 }
 
 // Fonction pour supprimer tous les messages d'un client
-async function deleteAllMessages(client) {
-  try {
-    if (!window.supabase) {
-      console.error('Supabase non initialisé');
-      return false;
+function deleteAllMessages(client) {
+  return new Promise(function(resolve) {
+    try {
+      if (!window.supabase) {
+        console.error('Supabase non initialisé');
+        resolve(false);
+        return;
+      }
+      
+      console.log('Suppression de tous les messages en cours');
+      
+      window.supabase
+        .from('messages')
+        .delete()
+        .eq('client', client)
+        .then(function(result) {
+          var error = result.error;
+          
+          if (error) {
+            console.error('Erreur suppression tous les messages:', error);
+            resolve(false);
+            return;
+          }
+          
+          console.log('Tous les messages supprimés avec succès');
+          resolve(true);
+        })
+        .catch(function(error) {
+          console.error('Erreur deleteAllMessages:', error);
+          resolve(false);
+        });
+    } catch (error) {
+      console.error('Erreur deleteAllMessages:', error);
+      resolve(false);
     }
-    
-    console.log('Suppression de tous les messages en cours');
-    
-    const { error } = await window.supabase
-      .from('messages')
-      .delete()
-      .eq('client', client);
-    
-    if (error) {
-      console.error('Erreur suppression tous les messages:', error);
-      return false;
-    }
-    
-    console.log('Tous les messages supprimés avec succès');
-    return true;
-  } catch (error) {
-    console.error('Erreur deleteAllMessages:', error);
-    return false;
-  }
+  });
 }
 
 // Variable pour tracker si Supabase est prêt
-let supabaseReady = false;
+var supabaseReady = false;
 
 // Fonction pour attendre que Supabase soit prêt
 function waitForSupabase() {
-  return new Promise((resolve) => {
+  return new Promise(function(resolve) {
     if (supabaseReady && window.supabase) {
       resolve();
     } else {
-      const checkInterval = setInterval(() => {
+      var checkInterval = setInterval(function() {
         if (supabaseReady && window.supabase) {
           clearInterval(checkInterval);
           resolve();
