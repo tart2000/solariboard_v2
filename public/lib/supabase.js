@@ -33,15 +33,29 @@ function initSupabase() {
           var script = document.createElement('script');
           script.src = 'https://unpkg.com/@supabase/supabase-js@2';
           script.onload = function() {
-            try {
-              window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-              supabaseReady = true;
-              console.log('Supabase initialisé avec succès');
-              resolve();
-            } catch (error) {
-              console.error('Erreur création client Supabase:', error);
-              reject(error);
-            }
+            // Attendre que window.supabase soit disponible
+            var checkSupabase = setInterval(function() {
+              if (window.supabase && typeof window.supabase.createClient === 'function') {
+                clearInterval(checkSupabase);
+                try {
+                  window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+                  supabaseReady = true;
+                  console.log('Supabase initialisé avec succès');
+                  resolve();
+                } catch (error) {
+                  console.error('Erreur création client Supabase:', error);
+                  reject(error);
+                }
+              }
+            }, 100);
+            
+            // Timeout après 10 secondes
+            setTimeout(function() {
+              clearInterval(checkSupabase);
+              if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                reject(new Error('Timeout: Supabase non disponible après 10 secondes'));
+              }
+            }, 10000);
           };
           script.onerror = function() {
             reject(new Error('Erreur chargement script Supabase'));
