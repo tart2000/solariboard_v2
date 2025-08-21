@@ -9,12 +9,18 @@ var supabase = window.supabase || null;
 // Fonction pour initialiser Supabase
 function initSupabase() {
   return new Promise(function(resolve, reject) {
+    debugLog('Début initialisation Supabase...');
+    
     if (typeof window !== 'undefined' && !window.supabase) {
       try {
+        debugLog('Récupération config depuis /api/config...');
+        
         // Récupérer la configuration depuis le serveur
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/api/config', false); // Synchronous pour simplicité
         xhr.send();
+        
+        debugLog('Réponse API config: ' + xhr.status);
         
         if (xhr.status === 200) {
           var config = JSON.parse(xhr.responseText);
@@ -22,54 +28,111 @@ function initSupabase() {
           supabaseUrl = config.supabaseUrl;
           supabaseAnonKey = config.supabaseAnonKey;
           
-          console.log('Configuration Supabase récupérée');
+          debugLog('Config récupérée - URL: ' + (supabaseUrl ? 'Défini' : 'Manquant'));
+          debugLog('Config récupérée - Key: ' + (supabaseAnonKey ? 'Défini' : 'Manquant'));
           
           if (!supabaseUrl || !supabaseAnonKey) {
+            debugLog('ERREUR: URL ou clé Supabase manquante');
             reject(new Error('URL ou clé Supabase manquante'));
             return;
           }
           
+          debugLog('Chargement script Supabase depuis CDN...');
+          
           // Charger Supabase depuis CDN si pas encore chargé
           var script = document.createElement('script');
           script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+          
           script.onload = function() {
-            // Attendre que window.supabase soit disponible
+            debugLog('Script Supabase chargé depuis CDN');
+            
+            // Vérifier immédiatement ce qui est disponible
+            debugLog('window.supabase existe: ' + (window.supabase ? 'OUI' : 'NON'));
+            
+            if (window.supabase) {
+              debugLog('Type de window.supabase: ' + typeof window.supabase);
+              debugLog('createClient existe: ' + (typeof window.supabase.createClient === 'function' ? 'OUI' : 'NON'));
+              
+              // Lister toutes les propriétés de window.supabase
+              var props = [];
+              for (var prop in window.supabase) {
+                props.push(prop);
+              }
+              debugLog('Propriétés de window.supabase: ' + props.join(', '));
+            } else {
+              // Vérifier s'il y a d'autres objets Supabase
+              debugLog('Recherche d\'objets Supabase alternatifs...');
+              for (var key in window) {
+                if (key.toLowerCase().includes('supabase')) {
+                  debugLog('Objet trouvé: window.' + key);
+                }
+              }
+            }
+            
+            // Essayer de créer le client immédiatement
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+              try {
+                debugLog('Tentative création client immédiate...');
+                window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+                supabaseReady = true;
+                debugLog('Supabase initialisé avec succès (immédiat)');
+                resolve();
+                return;
+              } catch (error) {
+                debugLog('Erreur création client immédiate: ' + error.message);
+                reject(error);
+                return;
+              }
+            }
+            
+            // Si pas immédiat, utiliser setInterval mais avec plus de debug
+            var attempts = 0;
             var checkSupabase = setInterval(function() {
+              attempts++;
+              debugLog('Tentative ' + attempts + ': window.supabase = ' + (window.supabase ? 'OUI' : 'NON'));
+              
               if (window.supabase && typeof window.supabase.createClient === 'function') {
                 clearInterval(checkSupabase);
                 try {
+                  debugLog('Création client après ' + attempts + ' tentatives...');
                   window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
                   supabaseReady = true;
-                  console.log('Supabase initialisé avec succès');
+                  debugLog('Supabase initialisé avec succès');
                   resolve();
                 } catch (error) {
-                  console.error('Erreur création client Supabase:', error);
+                  debugLog('Erreur création client: ' + error.message);
                   reject(error);
                 }
               }
-            }, 100);
+            }, 500); // Vérifier toutes les 500ms
             
-            // Timeout après 10 secondes
+            // Timeout plus court pour voir plus vite
             setTimeout(function() {
               clearInterval(checkSupabase);
-              if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-                reject(new Error('Timeout: Supabase non disponible après 10 secondes'));
-              }
-            }, 10000);
+              debugLog('TIMEOUT: Supabase non disponible après 5 secondes');
+              debugLog('État final: window.supabase = ' + (window.supabase ? 'OUI' : 'NON'));
+              reject(new Error('Timeout: Supabase non disponible après 5 secondes'));
+            }, 5000);
           };
+          
           script.onerror = function() {
+            debugLog('ERREUR: Chargement script Supabase échoué');
             reject(new Error('Erreur chargement script Supabase'));
           };
+          
           document.head.appendChild(script);
+          debugLog('Script ajouté au DOM');
+          
         } else {
+          debugLog('ERREUR HTTP: ' + xhr.status);
           reject(new Error('Erreur HTTP: ' + xhr.status));
         }
       } catch (error) {
-        console.error('Erreur chargement config Supabase:', error);
+        debugLog('ERREUR: ' + error.message);
         reject(error);
       }
     } else {
-      // Supabase déjà initialisé
+      debugLog('Supabase déjà initialisé ou window non disponible');
       resolve();
     }
   });
