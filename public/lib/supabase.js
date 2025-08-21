@@ -1,139 +1,26 @@
-// Configuration Supabase pour le client-side
-// Les variables d'environnement seront injectées par le serveur
-var supabaseUrl = 'your-supabase-url';
-var supabaseAnonKey = 'your-supabase-anon-key';
+// API REST directe pour Supabase - Pas de client JavaScript
+// Utilise uniquement des appels HTTP vers notre serveur
 
-// Créer le client Supabase
-var supabase = window.supabase || null;
+// Variable pour tracker si l'API est prête
+var apiReady = false;
 
-// Fonction pour initialiser Supabase
+// Fonction pour initialiser l'API REST
 function initSupabase() {
   return new Promise(function(resolve, reject) {
-    debugLog('Début initialisation Supabase...');
+    debugLog('Initialisation API REST...');
     
-    if (typeof window !== 'undefined' && !window.supabase) {
-      try {
-        debugLog('Récupération config depuis /api/config...');
-        
-        // Récupérer la configuration depuis le serveur
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/api/config', false); // Synchronous pour simplicité
-        xhr.send();
-        
-        debugLog('Réponse API config: ' + xhr.status);
-        
-        if (xhr.status === 200) {
-          var config = JSON.parse(xhr.responseText);
-          
-          supabaseUrl = config.supabaseUrl;
-          supabaseAnonKey = config.supabaseAnonKey;
-          
-          debugLog('Config récupérée - URL: ' + (supabaseUrl ? 'Défini' : 'Manquant'));
-          debugLog('Config récupérée - Key: ' + (supabaseAnonKey ? 'Défini' : 'Manquant'));
-          
-          if (!supabaseUrl || !supabaseAnonKey) {
-            debugLog('ERREUR: URL ou clé Supabase manquante');
-            reject(new Error('URL ou clé Supabase manquante'));
-            return;
-          }
-          
-          debugLog('Chargement script Supabase depuis CDN...');
-          
-          // Charger Supabase depuis CDN si pas encore chargé
-          var script = document.createElement('script');
-          script.src = 'https://unpkg.com/@supabase/supabase-js@2';
-          
-          script.onload = function() {
-            debugLog('Script Supabase chargé depuis CDN');
-            
-            // Vérifier immédiatement ce qui est disponible
-            debugLog('window.supabase existe: ' + (window.supabase ? 'OUI' : 'NON'));
-            
-            if (window.supabase) {
-              debugLog('Type de window.supabase: ' + typeof window.supabase);
-              debugLog('createClient existe: ' + (typeof window.supabase.createClient === 'function' ? 'OUI' : 'NON'));
-              
-              // Lister toutes les propriétés de window.supabase
-              var props = [];
-              for (var prop in window.supabase) {
-                props.push(prop);
-              }
-              debugLog('Propriétés de window.supabase: ' + props.join(', '));
-            } else {
-              // Vérifier s'il y a d'autres objets Supabase
-              debugLog('Recherche d\'objets Supabase alternatifs...');
-              for (var key in window) {
-                if (key.toLowerCase().includes('supabase')) {
-                  debugLog('Objet trouvé: window.' + key);
-                }
-              }
-            }
-            
-            // Essayer de créer le client immédiatement
-            if (window.supabase && typeof window.supabase.createClient === 'function') {
-              try {
-                debugLog('Tentative création client immédiate...');
-                window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-                supabaseReady = true;
-                debugLog('Supabase initialisé avec succès (immédiat)');
-                resolve();
-                return;
-              } catch (error) {
-                debugLog('Erreur création client immédiate: ' + error.message);
-                reject(error);
-                return;
-              }
-            }
-            
-            // Si pas immédiat, utiliser setInterval mais avec plus de debug
-            var attempts = 0;
-            var checkSupabase = setInterval(function() {
-              attempts++;
-              debugLog('Tentative ' + attempts + ': window.supabase = ' + (window.supabase ? 'OUI' : 'NON'));
-              
-              if (window.supabase && typeof window.supabase.createClient === 'function') {
-                clearInterval(checkSupabase);
-                try {
-                  debugLog('Création client après ' + attempts + ' tentatives...');
-                  window.supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-                  supabaseReady = true;
-                  debugLog('Supabase initialisé avec succès');
-                  resolve();
-                } catch (error) {
-                  debugLog('Erreur création client: ' + error.message);
-                  reject(error);
-                }
-              }
-            }, 500); // Vérifier toutes les 500ms
-            
-            // Timeout plus court pour voir plus vite
-            setTimeout(function() {
-              clearInterval(checkSupabase);
-              debugLog('TIMEOUT: Supabase non disponible après 5 secondes');
-              debugLog('État final: window.supabase = ' + (window.supabase ? 'OUI' : 'NON'));
-              reject(new Error('Timeout: Supabase non disponible après 5 secondes'));
-            }, 5000);
-          };
-          
-          script.onerror = function() {
-            debugLog('ERREUR: Chargement script Supabase échoué');
-            reject(new Error('Erreur chargement script Supabase'));
-          };
-          
-          document.head.appendChild(script);
-          debugLog('Script ajouté au DOM');
-          
-        } else {
-          debugLog('ERREUR HTTP: ' + xhr.status);
-          reject(new Error('Erreur HTTP: ' + xhr.status));
-        }
-      } catch (error) {
-        debugLog('ERREUR: ' + error.message);
-        reject(error);
-      }
-    } else {
-      debugLog('Supabase déjà initialisé ou window non disponible');
+    // Test simple pour vérifier que l'API fonctionne
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/messages/pocstudio', false);
+    xhr.send();
+    
+    if (xhr.status === 200) {
+      apiReady = true;
+      debugLog('API REST initialisée avec succès');
       resolve();
+    } else {
+      debugLog('ERREUR: API REST non disponible - Status: ' + xhr.status);
+      reject(new Error('API REST non disponible'));
     }
   });
 }
@@ -142,41 +29,22 @@ function initSupabase() {
 function getMessagesByClient(client) {
   return new Promise(function(resolve) {
     try {
-      // Attendre que Supabase soit prêt
-      waitForSupabase().then(function() {
-        if (!window.supabase) {
-          console.error('Supabase non initialisé');
-          resolve([]);
-          return;
-        }
-        
-        console.log('Récupération messages pour client:', client);
-        
-        window.supabase
-          .from('messages')
-          .select('*')
-          .eq('client', client)
-          .order('created_at', { ascending: false })
-          .then(function(result) {
-            var data = result.data;
-            var error = result.error;
-            
-            if (error) {
-              console.error('Erreur Supabase:', error);
-              resolve([]);
-              return;
-            }
-            
-            console.log('Messages récupérés avec succès');
-            resolve(data || []);
-          })
-          .catch(function(error) {
-            console.error('Erreur getMessagesByClient:', error);
-            resolve([]);
-          });
-      });
+      debugLog('Récupération messages via API REST pour client: ' + client);
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/messages/' + client, false);
+      xhr.send();
+      
+      if (xhr.status === 200) {
+        var messages = JSON.parse(xhr.responseText);
+        debugLog('Messages récupérés via API REST: ' + messages.length + ' messages');
+        resolve(messages);
+      } else {
+        debugLog('ERREUR API REST: ' + xhr.status);
+        resolve([]);
+      }
     } catch (error) {
-      console.error('Erreur getMessagesByClient:', error);
+      debugLog('ERREUR getMessagesByClient: ' + error.message);
       resolve([]);
     }
   });
@@ -186,41 +54,31 @@ function getMessagesByClient(client) {
 function addMessage(content, client) {
   return new Promise(function(resolve) {
     try {
-      // Attendre que Supabase soit prêt
-      waitForSupabase().then(function() {
-        if (!window.supabase) {
-          console.error('Supabase non initialisé');
+      debugLog('Ajout message via API REST pour client: ' + client);
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/messages/add', false);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        content: content,
+        client: client
+      }));
+      
+      if (xhr.status === 200) {
+        var result = JSON.parse(xhr.responseText);
+        if (result.success) {
+          debugLog('Message ajouté avec succès via API REST');
+          resolve(true);
+        } else {
+          debugLog('ERREUR ajout message via API REST');
           resolve(false);
-          return;
         }
-        
-        window.supabase
-          .from('messages')
-          .insert([
-            {
-              content: content,
-              client: client
-              // created_at sera automatiquement généré par Supabase
-            }
-          ])
-          .then(function(result) {
-            var error = result.error;
-            
-            if (error) {
-              console.error('Erreur ajout message:', error);
-              resolve(false);
-              return;
-            }
-            
-            resolve(true);
-          })
-          .catch(function(error) {
-            console.error('Erreur addMessage:', error);
-            resolve(false);
-          });
-      });
+      } else {
+        debugLog('ERREUR API REST ajout: ' + xhr.status);
+        resolve(false);
+      }
     } catch (error) {
-      console.error('Erreur addMessage:', error);
+      debugLog('ERREUR addMessage: ' + error.message);
       resolve(false);
     }
   });
@@ -230,36 +88,27 @@ function addMessage(content, client) {
 function deleteMessage(id) {
   return new Promise(function(resolve) {
     try {
-      if (!window.supabase) {
-        console.error('Supabase non initialisé');
-        resolve(false);
-        return;
-      }
+      debugLog('Suppression message via API REST: ' + id);
       
-      console.log('Suppression du message en cours');
+      var xhr = new XMLHttpRequest();
+      xhr.open('DELETE', '/api/messages/' + id, false);
+      xhr.send();
       
-      window.supabase
-        .from('messages')
-        .delete()
-        .eq('id', id)
-        .then(function(result) {
-          var error = result.error;
-          
-          if (error) {
-            console.error('Erreur suppression message:', error);
-            resolve(false);
-            return;
-          }
-          
-          console.log('Message supprimé avec succès');
+      if (xhr.status === 200) {
+        var result = JSON.parse(xhr.responseText);
+        if (result.success) {
+          debugLog('Message supprimé avec succès via API REST');
           resolve(true);
-        })
-        .catch(function(error) {
-          console.error('Erreur deleteMessage:', error);
+        } else {
+          debugLog('ERREUR suppression message via API REST');
           resolve(false);
-        });
+        }
+      } else {
+        debugLog('ERREUR API REST suppression: ' + xhr.status);
+        resolve(false);
+      }
     } catch (error) {
-      console.error('Erreur deleteMessage:', error);
+      debugLog('ERREUR deleteMessage: ' + error.message);
       resolve(false);
     }
   });
@@ -269,52 +118,40 @@ function deleteMessage(id) {
 function deleteAllMessages(client) {
   return new Promise(function(resolve) {
     try {
-      if (!window.supabase) {
-        console.error('Supabase non initialisé');
-        resolve(false);
-        return;
-      }
+      debugLog('Suppression tous les messages via API REST pour client: ' + client);
       
-      console.log('Suppression de tous les messages en cours');
+      var xhr = new XMLHttpRequest();
+      xhr.open('DELETE', '/api/messages/clear/' + client, false);
+      xhr.send();
       
-      window.supabase
-        .from('messages')
-        .delete()
-        .eq('client', client)
-        .then(function(result) {
-          var error = result.error;
-          
-          if (error) {
-            console.error('Erreur suppression tous les messages:', error);
-            resolve(false);
-            return;
-          }
-          
-          console.log('Tous les messages supprimés avec succès');
+      if (xhr.status === 200) {
+        var result = JSON.parse(xhr.responseText);
+        if (result.success) {
+          debugLog('Tous les messages supprimés avec succès via API REST');
           resolve(true);
-        })
-        .catch(function(error) {
-          console.error('Erreur deleteAllMessages:', error);
+        } else {
+          debugLog('ERREUR suppression tous les messages via API REST');
           resolve(false);
-        });
+        }
+      } else {
+        debugLog('ERREUR API REST suppression tous: ' + xhr.status);
+        resolve(false);
+      }
     } catch (error) {
-      console.error('Erreur deleteAllMessages:', error);
+      debugLog('ERREUR deleteAllMessages: ' + error.message);
       resolve(false);
     }
   });
 }
 
-// Variable pour tracker si Supabase est prêt
-var supabaseReady = false;
-
-// Fonction pour attendre que Supabase soit prêt
+// Fonction pour attendre que l'API soit prête
 function waitForSupabase() {
   return new Promise(function(resolve) {
-    if (supabaseReady && window.supabase) {
+    if (apiReady) {
       resolve();
     } else {
       var checkInterval = setInterval(function() {
-        if (supabaseReady && window.supabase) {
+        if (apiReady) {
           clearInterval(checkInterval);
           resolve();
         }

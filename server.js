@@ -51,15 +51,225 @@ app.get("/api/config", (request, response) => {
   response.json(config);
 });
 
-// Endpoint de fallback pour récupérer les messages (si Supabase ne fonctionne pas)
+// API REST directe pour Supabase - Récupérer les messages
 app.get("/api/messages/:client", (request, response) => {
   const client = request.params.client;
   
-  console.log('Fallback API: Récupération messages pour client:', client);
+  console.log('API REST: Récupération messages pour client:', client);
   
-  // Pour l'instant, retourner un tableau vide
-  // Vous pouvez implémenter une vraie logique de base de données ici si nécessaire
-  response.json([]);
+  // Vérifier que les variables d'environnement sont définies
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Variables d\'environnement Supabase manquantes');
+    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  }
+  
+  // Construire l'URL de l'API Supabase
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Faire l'appel à l'API REST de Supabase
+  const https = require('https');
+  const url = `${supabaseUrl}/rest/v1/messages?client=eq.${client}&order=created_at.desc`;
+  
+  const options = {
+    hostname: new URL(supabaseUrl).hostname,
+    port: 443,
+    path: new URL(supabaseUrl).pathname + `/rest/v1/messages?client=eq.${client}&order=created_at.desc`,
+    method: 'GET',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json'
+    }
+  };
+  
+  const req = https.request(options, (res) => {
+    let data = '';
+    
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    res.on('end', () => {
+      try {
+        const messages = JSON.parse(data);
+        console.log('Messages récupérés:', messages.length);
+        response.json(messages);
+      } catch (error) {
+        console.error('Erreur parsing JSON:', error);
+        response.status(500).json({ error: 'Erreur parsing des données' });
+      }
+    });
+  });
+  
+  req.on('error', (error) => {
+    console.error('Erreur requête Supabase:', error);
+    response.status(500).json({ error: 'Erreur communication avec Supabase' });
+  });
+  
+  req.end();
+});
+
+// API REST directe pour Supabase - Ajouter un message
+app.post("/api/messages/add", (request, response) => {
+  const { content, client } = request.body;
+  
+  console.log('API REST: Ajout message pour client:', client);
+  
+  if (!content || !client) {
+    return response.status(400).json({ error: 'Contenu et client requis' });
+  }
+  
+  // Vérifier que les variables d'environnement sont définies
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Variables d\'environnement Supabase manquantes');
+    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  }
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Préparer les données pour Supabase
+  const postData = JSON.stringify({
+    content: content,
+    client: client
+  });
+  
+  const https = require('https');
+  const url = new URL(supabaseUrl);
+  
+  const options = {
+    hostname: url.hostname,
+    port: 443,
+    path: url.pathname + '/rest/v1/messages',
+    method: 'POST',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData)
+    }
+  };
+  
+  const req = https.request(options, (res) => {
+    let data = '';
+    
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    res.on('end', () => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        console.log('Message ajouté avec succès');
+        response.json({ success: true });
+      } else {
+        console.error('Erreur ajout message:', data);
+        response.status(500).json({ error: 'Erreur ajout message' });
+      }
+    });
+  });
+  
+  req.on('error', (error) => {
+    console.error('Erreur requête Supabase:', error);
+    response.status(500).json({ error: 'Erreur communication avec Supabase' });
+  });
+  
+  req.write(postData);
+  req.end();
+});
+
+// API REST directe pour Supabase - Supprimer un message
+app.delete("/api/messages/:id", (request, response) => {
+  const messageId = request.params.id;
+  
+  console.log('API REST: Suppression message:', messageId);
+  
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Variables d\'environnement Supabase manquantes');
+    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  }
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  const https = require('https');
+  const url = new URL(supabaseUrl);
+  
+  const options = {
+    hostname: url.hostname,
+    port: 443,
+    path: url.pathname + `/rest/v1/messages?id=eq.${messageId}`,
+    method: 'DELETE',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json'
+    }
+  };
+  
+  const req = https.request(options, (res) => {
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      console.log('Message supprimé avec succès');
+      response.json({ success: true });
+    } else {
+      console.error('Erreur suppression message');
+      response.status(500).json({ error: 'Erreur suppression message' });
+    }
+  });
+  
+  req.on('error', (error) => {
+    console.error('Erreur requête Supabase:', error);
+    response.status(500).json({ error: 'Erreur communication avec Supabase' });
+  });
+  
+  req.end();
+});
+
+// API REST directe pour Supabase - Supprimer tous les messages d'un client
+app.delete("/api/messages/clear/:client", (request, response) => {
+  const client = request.params.client;
+  
+  console.log('API REST: Suppression tous les messages pour client:', client);
+  
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Variables d\'environnement Supabase manquantes');
+    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  }
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  const https = require('https');
+  const url = new URL(supabaseUrl);
+  
+  const options = {
+    hostname: url.hostname,
+    port: 443,
+    path: url.pathname + `/rest/v1/messages?client=eq.${client}`,
+    method: 'DELETE',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json'
+    }
+  };
+  
+  const req = https.request(options, (res) => {
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      console.log('Tous les messages supprimés avec succès');
+      response.json({ success: true });
+    } else {
+      console.error('Erreur suppression tous les messages');
+      response.status(500).json({ error: 'Erreur suppression tous les messages' });
+    }
+  });
+  
+  req.on('error', (error) => {
+    console.error('Erreur requête Supabase:', error);
+    response.status(500).json({ error: 'Erreur communication avec Supabase' });
+  });
+  
+  req.end();
 });
 
 // Chemin vers les fichiers de données
