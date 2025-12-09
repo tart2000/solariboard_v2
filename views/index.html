@@ -327,7 +327,19 @@
 
         function loadBoard() {
           console.log('loadBoard appelé');
-          if (getMessageList()) {
+          var messageListPromise = getMessageList();
+          
+          if (messageListPromise && typeof messageListPromise.then === 'function') {
+            // Attendre que les messages soient chargés avant d'afficher
+            messageListPromise.then(function() {
+              var ret = Board.setMessage(
+                wordWrap(currentMessage.toUpperCase(), cols)
+              );
+            }).catch(function(error) {
+              console.log("Problème sur le service de récupération des données...", error);
+            });
+          } else if (messageListPromise) {
+            // Fallback si getMessageList retourne true (ancien comportement)
             var ret = Board.setMessage(
               wordWrap(currentMessage.toUpperCase(), cols)
             );

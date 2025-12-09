@@ -16,34 +16,39 @@ function debugLog(message) {
 
 // Fonction de fallback vers l'API Express (si Hygraph ne fonctionne pas)
 function fallbackToExpressAPI(board) {
-  debugLog('Utilisation du fallback Express API pour board: ' + board);
-  
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/api/messages/' + board, false); // Synchronous pour simplicité
-  
-  try {
-    xhr.send();
+  return new Promise(function(resolve) {
+    debugLog('Utilisation du fallback Express API pour board: ' + board);
     
-    if (xhr.status === 200) {
-      var messages = JSON.parse(xhr.responseText);
-      debugLog('Messages récupérés via fallback: ' + messages.length + ' messages');
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/messages/' + board, false); // Synchronous pour simplicité
+    
+    try {
+      xhr.send();
       
-      // Si on est sur la page messages (modération), afficher dans la liste
-      if (isMessagesPage && dreamsList) {
-        messages.forEach(function(row) {
-          appendNewDream(row.content, row.id, row.created_at);
-        });
+      if (xhr.status === 200) {
+        var messages = JSON.parse(xhr.responseText);
+        debugLog('Messages récupérés via fallback: ' + messages.length + ' messages');
+        
+        // Si on est sur la page messages (modération), afficher dans la liste
+        if (isMessagesPage && dreamsList) {
+          messages.forEach(function(row) {
+            appendNewDream(row.content, row.id, row.created_at);
+          });
+        }
+        // Si on est sur la page Solari, mettre à jour le message courant
+        if (isSolariPage) {
+          setCurrentMessage(messages);
+        }
+        resolve(messages);
+      } else {
+        debugLog('Erreur fallback API: ' + xhr.status);
+        resolve([]);
       }
-      // Si on est sur la page Solari, mettre à jour le message courant
-      if (isSolariPage) {
-        setCurrentMessage(messages);
-      }
-    } else {
-      debugLog('Erreur fallback API: ' + xhr.status);
+    } catch (error) {
+      debugLog('Erreur fallback API: ' + error.message);
+      resolve([]);
     }
-  } catch (error) {
-    debugLog('Erreur fallback API: ' + error.message);
-  }
+  });
 }
 
 // define variables that reference elements on our page
@@ -126,7 +131,7 @@ var getMessageList = function() {
   // Vérifier si on est déjà en train de charger (éviter les appels multiples)
   if (getMessageList._loading) {
     console.log('Chargement déjà en cours, ignoré');
-    return true;
+    return getMessageList._promise || Promise.resolve();
   }
   
   getMessageList._loading = true;
@@ -143,11 +148,14 @@ var getMessageList = function() {
     dreamsList.innerHTML = "";
   }
   
+  // Créer une promesse pour pouvoir l'attendre
+  var promise;
+  
   // Utiliser Hygraph si disponible, sinon fallback vers l'API
   if (window.SupabaseClient && window.SupabaseClient.getMessagesByBoard) {
     debugLog('Utilisation de Hygraph pour récupérer les messages');
     // Utiliser Hygraph
-    window.SupabaseClient.getMessagesByBoard(board)
+    promise = window.SupabaseClient.getMessagesByBoard(board)
       .then(function(response) {
         debugLog('Messages récupérés: ' + (response ? response.length : 0) + ' messages');
         console.log('Messages récupérés:', response);
@@ -165,22 +173,28 @@ var getMessageList = function() {
         
         // Réinitialiser le flag de chargement
         getMessageList._loading = false;
+        return response;
       })
       .catch(function(error) {
         debugLog('Erreur Hygraph: ' + error.message);
         console.error('Erreur Hygraph:', error);
         // Fallback vers l'API Express
-        fallbackToExpressAPI(board);
-        getMessageList._loading = false;
+        return fallbackToExpressAPI(board).then(function() {
+          getMessageList._loading = false;
+        });
       });
   } else {
     debugLog('Hygraph non disponible, utilisation du fallback');
     console.error('Hygraph non disponible');
-    fallbackToExpressAPI(board);
-    getMessageList._loading = false;
+    promise = fallbackToExpressAPI(board).then(function() {
+      getMessageList._loading = false;
+    });
   }
   
-  return true;
+  // Stocker la promesse pour les appels suivants
+  getMessageList._promise = promise;
+  
+  return promise;
 };
 
 
