@@ -326,6 +326,7 @@
           );
 
         function loadBoard() {
+          console.log('loadBoard appelé');
           if (getMessageList()) {
             var ret = Board.setMessage(
               wordWrap(currentMessage.toUpperCase(), cols)

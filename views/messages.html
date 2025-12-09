@@ -56,10 +56,22 @@
   <!-- Le template utilisé pour pousser le contenu -->
   <template id="messagerow">
     <div class="alert alert-secondary alert-dismissible fade show" role="alert">
-      <p></p>
+      <p class="message-content"></p>
+      <textarea class="message-edit d-none form-control mb-2" rows="2"></textarea>
+      <div class="message-actions mb-2">
+        <button type="button" class="btn btn-sm btn-primary edit-btn">
+          <i class="ph ph-pencil"></i> Éditer
+        </button>
+        <button type="button" class="btn btn-sm btn-success save-btn d-none">
+          <i class="ph ph-check"></i> Sauvegarder
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary cancel-btn d-none">
+          <i class="ph ph-x"></i> Annuler
+        </button>
+      </div>
       <button
         type="button"
-        class="close"
+        class="close delete-btn"
         data-dismiss="alert"
         aria-label="Close">
         <span aria-hidden="true">&times;</span>

@@ -5,6 +5,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
+const { GraphQLClient, gql } = require('graphql-request');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -17,6 +18,30 @@ app.use('/app', express.static(path.join(__dirname, 'public/app')));
 app.use('/img', express.static(path.join(__dirname, 'public/img')));
 app.use('/sound', express.static(path.join(__dirname, 'public/sound')));
 app.use('/plugin', express.static(path.join(__dirname, 'public/plugin')));
+
+// Configuration GraphQL Hygraph
+const hygraphEndpoint = process.env.HYGRAPH_ENDPOINT;
+const hygraphToken = process.env.HYGRAPH_TOKEN;
+// Content API Token pour les lectures (si différent du Permanent Auth Token)
+const hygraphContentToken = process.env.HYGRAPH_CONTENT_TOKEN || hygraphToken;
+
+if (!hygraphEndpoint || !hygraphToken) {
+  console.warn('ATTENTION: Variables d\'environnement Hygraph manquantes');
+}
+
+// Client pour les lectures (Content API)
+const graphQLReadClient = new GraphQLClient(hygraphEndpoint, {
+  headers: {
+    authorization: `Bearer ${hygraphContentToken}`,
+  },
+});
+
+// Client pour les mutations (Permanent Auth Token)
+const graphQLWriteClient = new GraphQLClient(hygraphEndpoint, {
+  headers: {
+    authorization: `Bearer ${hygraphToken}`,
+  },
+});
 
 // Route spécifique pour client.js
 app.get('/client.js', (req, res) => {
@@ -36,256 +61,331 @@ app.get('/message.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/message.css'));
 });
 
-// Endpoint pour récupérer la configuration Supabase
-app.get("/api/config", (request, response) => {
-  const config = {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  };
+// API GraphQL Hygraph - Récupérer les messages par board
+app.get("/api/messages/:board", async (request, response) => {
+  const boardName = request.params.board;
   
-  console.log('Config Supabase:', {
-    supabaseUrl: config.supabaseUrl ? 'Défini' : 'Manquant',
-    supabaseAnonKey: config.supabaseAnonKey ? 'Défini' : 'Manquant'
-  });
-  
-  response.json(config);
-});
-
-// API REST directe pour Supabase - Récupérer les messages
-app.get("/api/messages/:client", (request, response) => {
-  const client = request.params.client;
-  
-  console.log('API REST: Récupération messages pour client:', client);
+  console.log('API GraphQL: Récupération messages pour board:', boardName);
   
   // Vérifier que les variables d'environnement sont définies
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Variables d\'environnement Supabase manquantes');
-    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  if (!hygraphEndpoint || !hygraphToken) {
+    console.error('Variables d\'environnement Hygraph manquantes');
+    return response.status(500).json({ error: 'Configuration Hygraph manquante' });
   }
   
-  // Construire l'URL de l'API Supabase
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  // Faire l'appel à l'API REST de Supabase
-  const https = require('https');
-  const url = `${supabaseUrl}/rest/v1/messages?client=eq.${client}&order=created_at.desc`;
-  
-  const options = {
-    hostname: new URL(supabaseUrl).hostname,
-    port: 443,
-    path: new URL(supabaseUrl).pathname + `/rest/v1/messages?client=eq.${client}&order=created_at.desc`,
-    method: 'GET',
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json'
-    }
-  };
-  
-  const req = https.request(options, (res) => {
-    let data = '';
-    
-    res.on('data', (chunk) => {
-      data += chunk;
-    });
-    
-    res.on('end', () => {
-      try {
-        const messages = JSON.parse(data);
-        console.log('Messages récupérés:', messages.length);
-        response.json(messages);
-      } catch (error) {
-        console.error('Erreur parsing JSON:', error);
-        response.status(500).json({ error: 'Erreur parsing des données' });
+  try {
+    // D'abord, récupérer le board par son name pour obtenir son ID
+    const boardQuery = gql`
+      query GetBoardByName($boardName: String!) {
+        boards(where: { name: $boardName }, first: 1) {
+          id
+          name
+        }
       }
+    `;
+    
+    const boardData = await graphQLReadClient.request(boardQuery, { boardName });
+    const boards = boardData.boards || [];
+    
+    if (boards.length === 0) {
+      console.log('Board non trouvé:', boardName);
+      return response.redirect('/pocstudio');
+    }
+    
+    const boardId = boards[0].id;
+    
+    // Ensuite, récupérer les messages filtrés par l'ID du board
+    const messagesQuery = gql`
+      query GetMessagesByBoardId($boardId: ID!) {
+        messages(
+          where: { 
+            board: { 
+              id: $boardId 
+            } 
+          }
+          orderBy: createdAt_DESC
+        ) {
+          id
+          content
+          createdAt
+        }
+      }
+    `;
+    
+    const messagesData = await graphQLReadClient.request(messagesQuery, { boardId });
+    const messages = messagesData.messages || [];
+    console.log('Messages récupérés:', messages.length);
+    
+    // Convertir createdAt en created_at pour compatibilité frontend
+    const formattedMessages = messages.map(msg => ({
+      id: msg.id,
+      content: msg.content,
+      created_at: msg.createdAt
+    }));
+    
+    response.json(formattedMessages);
+  } catch (error) {
+    console.error('Erreur requête Hygraph:', error);
+    if (error.response) {
+      console.error('Détails erreur:', JSON.stringify(error.response.errors, null, 2));
+    }
+    
+    // Si le board n'existe pas, rediriger vers la HP
+    if (error.response && error.response.errors) {
+      const graphqlError = error.response.errors[0];
+      console.error('Erreur GraphQL:', graphqlError.message);
+      if (graphqlError.message && graphqlError.message.includes('not found')) {
+        return response.redirect('/pocstudio');
+      }
+    }
+    response.status(500).json({ 
+      error: 'Erreur communication avec Hygraph',
+      details: error.response?.errors?.[0]?.message || error.message 
     });
-  });
-  
-  req.on('error', (error) => {
-    console.error('Erreur requête Supabase:', error);
-    response.status(500).json({ error: 'Erreur communication avec Supabase' });
-  });
-  
-  req.end();
+  }
 });
 
-// API REST directe pour Supabase - Ajouter un message
-app.post("/api/messages/add", (request, response) => {
-  const { content, client } = request.body;
+// API GraphQL Hygraph - Ajouter un message
+app.post("/api/messages/add", async (request, response) => {
+  const { content, board } = request.body;
   
-  console.log('API REST: Ajout message pour client:', client);
+  console.log('API GraphQL: Ajout message pour board:', board);
   
-  if (!content || !client) {
-    return response.status(400).json({ error: 'Contenu et client requis' });
+  if (!content || !board) {
+    return response.status(400).json({ error: 'Contenu et board requis' });
   }
   
   // Vérifier que les variables d'environnement sont définies
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Variables d\'environnement Supabase manquantes');
-    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  if (!hygraphEndpoint || !hygraphToken) {
+    console.error('Variables d\'environnement Hygraph manquantes');
+    return response.status(500).json({ error: 'Configuration Hygraph manquante' });
   }
   
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  // Préparer les données pour Supabase
-  const postData = JSON.stringify({
-    content: content,
-    client: client
-  });
-  
-  const https = require('https');
-  const url = new URL(supabaseUrl);
-  
-  const options = {
-    hostname: url.hostname,
-    port: 443,
-    path: url.pathname + '/rest/v1/messages',
-    method: 'POST',
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
-    }
-  };
-  
-  const req = https.request(options, (res) => {
-    let data = '';
-    
-    res.on('data', (chunk) => {
-      data += chunk;
-    });
-    
-    res.on('end', () => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        console.log('Message ajouté avec succès');
-        response.json({ success: true });
-      } else {
-        console.error('Erreur ajout message:', data);
-        response.status(500).json({ error: 'Erreur ajout message' });
+  try {
+    // D'abord, récupérer le board par son name pour obtenir son ID
+    const boardQuery = gql`
+      query GetBoardByName($boardName: String!) {
+        boards(where: { name: $boardName }, first: 1) {
+          id
+          name
+        }
       }
-    });
-  });
-  
-  req.on('error', (error) => {
-    console.error('Erreur requête Supabase:', error);
-    response.status(500).json({ error: 'Erreur communication avec Supabase' });
-  });
-  
-  req.write(postData);
-  req.end();
+    `;
+    
+    const boardData = await graphQLReadClient.request(boardQuery, { boardName: board });
+    const boards = boardData.boards || [];
+    
+    if (boards.length === 0) {
+      console.log('Board non trouvé:', board);
+      return response.redirect('/pocstudio');
+    }
+    
+    const boardId = boards[0].id;
+    
+    // Ensuite, créer le message en connectant au board par son ID et le publier directement
+    const mutation = gql`
+      mutation CreateAndPublishMessage($content: String!, $boardId: ID!) {
+        createMessage(data: {
+          content: $content
+          board: { connect: { id: $boardId } }
+        }) {
+          id
+          content
+          createdAt
+        }
+        publishMessage(where: { id: $id }) {
+          id
+        }
+      }
+    `;
+    
+    // Créer le message
+    const createMutation = gql`
+      mutation CreateMessage($content: String!, $boardId: ID!) {
+        createMessage(data: {
+          content: $content
+          board: { connect: { id: $boardId } }
+        }) {
+          id
+          content
+          createdAt
+        }
+      }
+    `;
+    
+    const createResult = await graphQLWriteClient.request(createMutation, { content, boardId });
+    const messageId = createResult.createMessage.id;
+    
+    // Publier le message
+    const publishMutation = gql`
+      mutation PublishMessage($id: ID!) {
+        publishMessage(where: { id: $id }) {
+          id
+        }
+      }
+    `;
+    
+    await graphQLWriteClient.request(publishMutation, { id: messageId });
+    console.log('Message ajouté avec succès');
+    response.json({ success: true });
+  } catch (error) {
+    console.error('Erreur ajout message:', error);
+    if (error.response) {
+      console.error('Détails erreur:', JSON.stringify(error.response.errors, null, 2));
+    }
+    // Si le board n'existe pas, rediriger vers la HP
+    if (error.response && error.response.errors) {
+      const graphqlError = error.response.errors[0];
+      if (graphqlError.message && (graphqlError.message.includes('not found') || graphqlError.message.includes('connect'))) {
+        return response.redirect('/pocstudio');
+      }
+    }
+    response.status(500).json({ error: 'Erreur ajout message' });
+  }
 });
 
-// API REST directe pour Supabase - Supprimer un message
-app.delete("/api/messages/:id", (request, response) => {
+// API GraphQL Hygraph - Supprimer un message
+app.delete("/api/messages/:id", async (request, response) => {
   const messageId = request.params.id;
   
-  console.log('API REST: Suppression message:', messageId);
+  console.log('API GraphQL: Suppression message:', messageId);
   
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Variables d\'environnement Supabase manquantes');
-    return response.status(500).json({ error: 'Configuration Supabase manquante' });
+  if (!hygraphEndpoint || !hygraphToken) {
+    console.error('Variables d\'environnement Hygraph manquantes');
+    return response.status(500).json({ error: 'Configuration Hygraph manquante' });
   }
   
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  const https = require('https');
-  const url = new URL(supabaseUrl);
-  
-  const options = {
-    hostname: url.hostname,
-    port: 443,
-    path: url.pathname + `/rest/v1/messages?id=eq.${messageId}`,
-    method: 'DELETE',
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json'
+  const mutation = gql`
+    mutation DeleteMessage($id: ID!) {
+      deleteMessage(where: { id: $id }) {
+        id
+      }
     }
-  };
+  `;
   
-  const req = https.request(options, (res) => {
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      console.log('Message supprimé avec succès');
-      response.json({ success: true });
-    } else {
-      console.error('Erreur suppression message');
-      response.status(500).json({ error: 'Erreur suppression message' });
-    }
-  });
-  
-  req.on('error', (error) => {
-    console.error('Erreur requête Supabase:', error);
-    response.status(500).json({ error: 'Erreur communication avec Supabase' });
-  });
-  
-  req.end();
-});
-
-// API REST directe pour Supabase - Supprimer tous les messages d'un client
-app.delete("/api/messages/clear/:client", (request, response) => {
-  const client = request.params.client;
-  
-  console.log('API REST: Suppression tous les messages pour client:', client);
-  
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Variables d\'environnement Supabase manquantes');
-    return response.status(500).json({ error: 'Configuration Supabase manquante' });
-  }
-  
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  const https = require('https');
-  const url = new URL(supabaseUrl);
-  
-  const options = {
-    hostname: url.hostname,
-    port: 443,
-    path: url.pathname + `/rest/v1/messages?client=eq.${client}`,
-    method: 'DELETE',
-    headers: {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json'
-    }
-  };
-  
-  const req = https.request(options, (res) => {
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      console.log('Tous les messages supprimés avec succès');
-      response.json({ success: true });
-    } else {
-      console.error('Erreur suppression tous les messages');
-      response.status(500).json({ error: 'Erreur suppression tous les messages' });
-    }
-  });
-  
-  req.on('error', (error) => {
-    console.error('Erreur requête Supabase:', error);
-    response.status(500).json({ error: 'Erreur communication avec Supabase' });
-  });
-  
-  req.end();
-});
-
-// Chemin vers les fichiers de données
-const clientsFile = path.join(__dirname, "data", "clients.json");
-
-// Fonction pour lire les clients autorisés
-function readClients() {
   try {
-    if (fs.existsSync(clientsFile)) {
-      const data = fs.readFileSync(clientsFile, 'utf8');
-      return JSON.parse(data);
-    }
-    return [];
+    await graphQLWriteClient.request(mutation, { id: messageId });
+    console.log('Message supprimé avec succès');
+    response.json({ success: true });
   } catch (error) {
-    console.error('Erreur lecture clients:', error);
-    return [];
+    console.error('Erreur suppression message:', error);
+    response.status(500).json({ error: 'Erreur suppression message' });
+  }
+});
+
+// API GraphQL Hygraph - Supprimer tous les messages d'un board
+app.delete("/api/messages/clear/:board", async (request, response) => {
+  const boardName = request.params.board;
+  
+  console.log('API GraphQL: Suppression tous les messages pour board:', boardName);
+  
+  if (!hygraphEndpoint || !hygraphToken) {
+    console.error('Variables d\'environnement Hygraph manquantes');
+    return response.status(500).json({ error: 'Configuration Hygraph manquante' });
+  }
+  
+  try {
+    // D'abord, récupérer le board par son name pour obtenir son ID
+    const boardQuery = gql`
+      query GetBoardByName($boardName: String!) {
+        boards(where: { name: $boardName }, first: 1) {
+          id
+          name
+        }
+      }
+    `;
+    
+    const boardData = await graphQLReadClient.request(boardQuery, { boardName });
+    const boards = boardData.boards || [];
+    
+    if (boards.length === 0) {
+      console.log('Board non trouvé:', boardName);
+      return response.status(404).json({ error: 'Board non trouvé' });
+    }
+    
+    const boardId = boards[0].id;
+    
+    const mutation = gql`
+      mutation DeleteAllMessagesByBoard($boardId: ID!) {
+        deleteManyMessages(where: { 
+          board: { 
+            id: $boardId 
+          } 
+        }) {
+          count
+        }
+      }
+    `;
+    
+    const data = await graphQLWriteClient.request(mutation, { boardId });
+    console.log('Tous les messages supprimés avec succès:', data.deleteManyMessages.count);
+    response.json({ success: true });
+  } catch (error) {
+    console.error('Erreur suppression tous les messages:', error);
+    response.status(500).json({ error: 'Erreur suppression tous les messages' });
+  }
+});
+
+// API GraphQL Hygraph - Mettre à jour un message
+app.put("/api/messages/:id", async (request, response) => {
+  const messageId = request.params.id;
+  const { content } = request.body;
+  
+  console.log('API GraphQL: Mise à jour message:', messageId);
+  
+  if (!content) {
+    return response.status(400).json({ error: 'Contenu requis' });
+  }
+  
+  if (!hygraphEndpoint || !hygraphToken) {
+    console.error('Variables d\'environnement Hygraph manquantes');
+    return response.status(500).json({ error: 'Configuration Hygraph manquante' });
+  }
+  
+  const mutation = gql`
+    mutation UpdateMessage($id: ID!, $content: String!) {
+      updateMessage(
+        where: { id: $id }
+        data: { content: $content }
+      ) {
+        id
+        content
+        createdAt
+      }
+    }
+  `;
+  
+  try {
+    await graphQLWriteClient.request(mutation, { id: messageId, content });
+    console.log('Message mis à jour avec succès');
+    response.json({ success: true });
+  } catch (error) {
+    console.error('Erreur mise à jour message:', error);
+    response.status(500).json({ error: 'Erreur mise à jour message' });
+  }
+});
+
+// Fonction pour vérifier si un board existe dans Hygraph
+async function boardExists(boardName) {
+  try {
+    if (!hygraphEndpoint || !hygraphContentToken) {
+      return false;
+    }
+    
+    const boardQuery = gql`
+      query GetBoardByName($boardName: String!) {
+        boards(where: { name: $boardName }, first: 1) {
+          id
+          name
+        }
+      }
+    `;
+    
+    const boardData = await graphQLReadClient.request(boardQuery, { boardName });
+    return (boardData.boards || []).length > 0;
+  } catch (error) {
+    console.error('Erreur vérification board:', error);
+    return false;
   }
 }
 
@@ -297,46 +397,43 @@ app.get("/", (request, response) => {
   response.redirect('/pocstudio');
 });
 
-// Routes pour les clients spécifiques
-app.get("/:client", (request, response) => {
-  const client = request.params.client;
+// Routes pour les boards spécifiques
+app.get("/:board", async (request, response) => {
+  const board = request.params.board;
   
-  // Vérifier si le client est autorisé
-  const clients = readClients();
-  const clientExists = clients.some(c => c.id === client);
+  // Vérifier si le board existe dans Hygraph
+  const exists = await boardExists(board);
   
-  if (!clientExists) {
-    // Rediriger vers pocstudio si le client n'est pas autorisé
+  if (!exists) {
+    // Rediriger vers pocstudio si le board n'existe pas
     return response.redirect('/pocstudio');
   }
   
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
-app.get("/:client/message", (request, response) => {
-  const client = request.params.client;
+app.get("/:board/message", async (request, response) => {
+  const board = request.params.board;
   
-  // Vérifier si le client est autorisé
-  const clients = readClients();
-  const clientExists = clients.some(c => c.id === client);
+  // Vérifier si le board existe dans Hygraph
+  const exists = await boardExists(board);
   
-  if (!clientExists) {
-    // Rediriger vers pocstudio si le client n'est pas autorisé
+  if (!exists) {
+    // Rediriger vers pocstudio si le board n'existe pas
     return response.redirect('/pocstudio');
   }
   
   response.sendFile(`${__dirname}/views/message.html`);
 });
 
-app.get("/:client/messages", (request, response) => {
-  const client = request.params.client;
+app.get("/:board/messages", async (request, response) => {
+  const board = request.params.board;
   
-  // Vérifier si le client est autorisé
-  const clients = readClients();
-  const clientExists = clients.some(c => c.id === client);
+  // Vérifier si le board existe dans Hygraph
+  const exists = await boardExists(board);
   
-  if (!clientExists) {
-    // Rediriger vers pocstudio si le client n'est pas autorisé
+  if (!exists) {
+    // Rediriger vers pocstudio si le board n'existe pas
     return response.redirect('/pocstudio');
   }
   
@@ -357,5 +454,5 @@ const cleanseString = function(string) {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
-  console.log(`Clients chargés depuis: ${clientsFile}`);
+  console.log(`Boards gérés via Hygraph`);
 });

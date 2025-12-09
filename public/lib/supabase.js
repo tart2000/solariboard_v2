@@ -25,14 +25,14 @@ function initSupabase() {
   });
 }
 
-// Fonction pour récupérer les messages d'un client
-function getMessagesByClient(client) {
+// Fonction pour récupérer les messages d'un board
+function getMessagesByBoard(board) {
   return new Promise(function(resolve) {
     try {
-      console.log('Récupération messages via API REST pour client: ' + client);
+      console.log('Récupération messages via API REST pour board: ' + board);
       
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/messages/' + client, false);
+      xhr.open('GET', '/api/messages/' + board, false);
       xhr.send();
       
       if (xhr.status === 200) {
@@ -44,24 +44,24 @@ function getMessagesByClient(client) {
         resolve([]);
       }
     } catch (error) {
-      console.log('ERREUR getMessagesByClient: ' + error.message);
+      console.log('ERREUR getMessagesByBoard: ' + error.message);
       resolve([]);
     }
   });
 }
 
 // Fonction pour ajouter un message
-function addMessage(content, client) {
+function addMessage(content, board) {
   return new Promise(function(resolve) {
     try {
-      console.log('Ajout message via API REST pour client: ' + client);
+      console.log('Ajout message via API REST pour board: ' + board);
       
       var xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/messages/add', false);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify({
         content: content,
-        client: client
+        board: board
       }));
       
       if (xhr.status === 200) {
@@ -114,14 +114,14 @@ function deleteMessage(id) {
   });
 }
 
-// Fonction pour supprimer tous les messages d'un client
-function deleteAllMessages(client) {
+// Fonction pour supprimer tous les messages d'un board
+function deleteAllMessages(board) {
   return new Promise(function(resolve) {
     try {
-      console.log('Suppression tous les messages via API REST pour client: ' + client);
+      console.log('Suppression tous les messages via API REST pour board: ' + board);
       
       var xhr = new XMLHttpRequest();
-      xhr.open('DELETE', '/api/messages/clear/' + client, false);
+      xhr.open('DELETE', '/api/messages/clear/' + board, false);
       xhr.send();
       
       if (xhr.status === 200) {
@@ -139,6 +139,39 @@ function deleteAllMessages(client) {
       }
     } catch (error) {
       console.log('ERREUR deleteAllMessages: ' + error.message);
+      resolve(false);
+    }
+  });
+}
+
+// Fonction pour mettre à jour un message
+function updateMessage(id, content) {
+  return new Promise(function(resolve) {
+    try {
+      console.log('Mise à jour message via API REST: ' + id);
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open('PUT', '/api/messages/' + id, false);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        content: content
+      }));
+      
+      if (xhr.status === 200) {
+        var result = JSON.parse(xhr.responseText);
+        if (result.success) {
+          console.log('Message mis à jour avec succès via API REST');
+          resolve(true);
+        } else {
+          console.log('ERREUR mise à jour message via API REST');
+          resolve(false);
+        }
+      } else {
+        console.log('ERREUR API REST mise à jour: ' + xhr.status);
+        resolve(false);
+      }
+    } catch (error) {
+      console.log('ERREUR updateMessage: ' + error.message);
       resolve(false);
     }
   });
@@ -163,9 +196,11 @@ function waitForSupabase() {
 // Exporter les fonctions
 window.SupabaseClient = {
   init: initSupabase,
-  getMessagesByClient: getMessagesByClient,
+  getMessagesByBoard: getMessagesByBoard,
+  getMessagesByClient: getMessagesByBoard, // Alias pour compatibilité
   addMessage: addMessage,
   deleteMessage: deleteMessage,
   deleteAllMessages: deleteAllMessages,
+  updateMessage: updateMessage,
   waitForSupabase: waitForSupabase
 }; 

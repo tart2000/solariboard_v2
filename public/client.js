@@ -14,12 +14,12 @@ function debugLog(message) {
   console.log(message);
 }
 
-// Fonction de fallback vers l'API Express (si Supabase ne fonctionne pas)
-function fallbackToExpressAPI(client) {
-  debugLog('Utilisation du fallback Express API pour client: ' + client);
+// Fonction de fallback vers l'API Express (si Hygraph ne fonctionne pas)
+function fallbackToExpressAPI(board) {
+  debugLog('Utilisation du fallback Express API pour board: ' + board);
   
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/api/messages/' + client, false); // Synchronous pour simplicité
+  xhr.open('GET', '/api/messages/' + board, false); // Synchronous pour simplicité
   
   try {
     xhr.send();
@@ -52,7 +52,7 @@ var dreamInput = dreamsForm ? dreamsForm.elements["dream"] : null;
 var dreamsList = document.getElementById("dreams");
 var clearButton = document.querySelector("#clear-dreams");
 var currentMessage = "Rendez-vous sur /message pour envoyer votre premier message"; // Message de fallback
-var lastID = 0;
+var lastCreatedAt = null; // Utiliser createdAt au lieu de lastID pour gérer les IDs strings Hygraph
 var index = 0;
 
 // Détecter si on est sur la page message, messages ou sur la page Solari
@@ -62,25 +62,30 @@ var isSolariPage = !isMessagePage && !isMessagesPage;
 
 debugLog('Client.js chargé - Page: ' + (isSolariPage ? 'Solari' : (isMessagePage ? 'Message' : 'Messages')));
 
-// Fonction helper pour détecter le client depuis l'URL
-function getClientFromURL() {
+// Fonction helper pour détecter le board depuis l'URL
+function getBoardFromURL() {
   var pathParts = window.location.pathname.split('/');
-  var client = 'pocstudio'; // Client par défaut
+  var board = 'pocstudio'; // Board par défaut
   
-  // Si on est sur /:client/messages, le client est le premier segment
+  // Si on est sur /:board/messages, le board est le premier segment
   if (pathParts.length >= 2 && pathParts[2] === 'messages') {
-    client = pathParts[1];
+    board = pathParts[1];
   }
-  // Si on est sur /:client/message, le client est le premier segment
+  // Si on est sur /:board/message, le board est le premier segment
   else if (pathParts.length >= 2 && pathParts[2] === 'message') {
-    client = pathParts[1];
+    board = pathParts[1];
   }
-  // Si on est sur /:client (page Solari), le client est le premier segment
+  // Si on est sur /:board (page Solari), le board est le premier segment
   else if (pathParts.length >= 2 && pathParts[1] !== 'messages' && pathParts[1] !== 'message') {
-    client = pathParts[1];
+    board = pathParts[1];
   }
   
-  return client;
+  return board;
+}
+
+// Alias pour compatibilité
+function getClientFromURL() {
+  return getBoardFromURL();
 }
 
 function setCurrentMessage(m) {
@@ -91,10 +96,13 @@ function setCurrentMessage(m) {
     return;
   }
   
-  var newID = m[0].id;
-  // Last new message if it is new
-  if (newID > lastID) {
-    lastID = newID;
+  // Utiliser createdAt pour détecter les nouveaux messages (IDs Hygraph sont des strings)
+  var newestCreatedAt = m[0].created_at;
+  var newestDate = new Date(newestCreatedAt);
+  
+  // Si c'est un nouveau message (createdAt plus récent)
+  if (!lastCreatedAt || newestDate > new Date(lastCreatedAt)) {
+    lastCreatedAt = newestCreatedAt;
     index = 0;
   } else {
     index++;
@@ -102,7 +110,7 @@ function setCurrentMessage(m) {
       index = 0;
     }
   }
-  currentMessage = m[index].content; // Changed from .dream to .content
+  currentMessage = m[index].content;
   debugLog('Message courant défini: ' + currentMessage.substring(0, 50) + '...');
 }
 
@@ -112,27 +120,34 @@ function setCurrentMessage(m) {
 //  Get list of all messages from database.
 // --------------------------------------------------------
 var getMessageList = function() {
-  // Détecter le client depuis l'URL
-  var client = getClientFromURL();
+  // Détecter le board depuis l'URL
+  var board = getBoardFromURL();
   
-  debugLog('Chargement des messages en cours pour client: ' + client);
+  // Vérifier si on est déjà en train de charger (éviter les appels multiples)
+  if (getMessageList._loading) {
+    console.log('Chargement déjà en cours, ignoré');
+    return true;
+  }
+  
+  getMessageList._loading = true;
+  
+  debugLog('Chargement des messages en cours pour board: ' + board);
   console.log('Chargement des messages en cours');
   console.log('Page message:', isMessagePage);
   console.log('Page Solari:', isSolariPage);
   console.log('Page messages:', isMessagesPage);
-  console.log('Client détecté:', client);
+  console.log('Board détecté:', board);
   
   // Vider la liste si on est sur la page messages (modération)
   if (isMessagesPage && dreamsList) {
     dreamsList.innerHTML = "";
   }
   
-  // Utiliser Supabase si disponible, sinon fallback vers l'API
-  if (window.SupabaseClient && window.SupabaseClient.getMessagesByClient) {
-    debugLog('Utilisation de Supabase pour récupérer les messages');
-    console.log('Utilisation de Supabase pour récupérer les messages');
-    // Utiliser Supabase
-    window.SupabaseClient.getMessagesByClient(client)
+  // Utiliser Hygraph si disponible, sinon fallback vers l'API
+  if (window.SupabaseClient && window.SupabaseClient.getMessagesByBoard) {
+    debugLog('Utilisation de Hygraph pour récupérer les messages');
+    // Utiliser Hygraph
+    window.SupabaseClient.getMessagesByBoard(board)
       .then(function(response) {
         debugLog('Messages récupérés: ' + (response ? response.length : 0) + ' messages');
         console.log('Messages récupérés:', response);
@@ -147,17 +162,22 @@ var getMessageList = function() {
         if (isSolariPage) {
           setCurrentMessage(response);
         }
+        
+        // Réinitialiser le flag de chargement
+        getMessageList._loading = false;
       })
       .catch(function(error) {
-        debugLog('Erreur Supabase: ' + error.message);
-        console.error('Erreur Supabase:', error);
+        debugLog('Erreur Hygraph: ' + error.message);
+        console.error('Erreur Hygraph:', error);
         // Fallback vers l'API Express
-        fallbackToExpressAPI(client);
+        fallbackToExpressAPI(board);
+        getMessageList._loading = false;
       });
   } else {
-    debugLog('Supabase non disponible, utilisation du fallback');
-    console.error('Supabase non disponible');
-    fallbackToExpressAPI(client);
+    debugLog('Hygraph non disponible, utilisation du fallback');
+    console.error('Hygraph non disponible');
+    fallbackToExpressAPI(board);
+    getMessageList._loading = false;
   }
   
   return true;
@@ -170,11 +190,24 @@ var appendNewDream = function(dream, id, created_at) { // Changed parameter name
   var template = document.querySelector("#messagerow");
   var divList = document.querySelector("#dreams"); // Insert point of the template
   var messageRow = document.importNode(template.content, true);
-  var pTxt = messageRow.querySelector("p"); // Insterting message text
-  var delBut = messageRow.querySelector("button"); // Insterting message id
+  var pTxt = messageRow.querySelector(".message-content") || messageRow.querySelector("p"); // Message text (nouveau ou ancien format)
+  var textarea = messageRow.querySelector(".message-edit"); // Textarea pour édition
+  var editBtn = messageRow.querySelector(".edit-btn"); // Bouton éditer
+  var saveBtn = messageRow.querySelector(".save-btn"); // Bouton sauvegarder
+  var cancelBtn = messageRow.querySelector(".cancel-btn"); // Bouton annuler
+  var delBut = messageRow.querySelector(".delete-btn") || messageRow.querySelector("button"); // Bouton supprimer (nouveau ou ancien format)
   var datElt = messageRow.querySelector("small.timestamp");
-  pTxt.textContent = dream;
-  delBut.id = id;
+  
+  // Contenu initial
+  if (pTxt) {
+    pTxt.textContent = dream;
+  }
+  if (textarea) {
+    textarea.value = dream;
+  }
+  if (delBut) {
+    delBut.id = id;
+  }
 
   // Formatage relatif simple
   var date = new Date(created_at);
@@ -195,12 +228,84 @@ var appendNewDream = function(dream, id, created_at) { // Changed parameter name
     timeText = "À l'instant";
   }
   
-  datElt.title = created_at;
-  datElt.innerHTML = timeText;
+  if (datElt) {
+    datElt.title = created_at;
+    datElt.innerHTML = timeText;
+  }
+  
+  // Listener pour éditer (seulement si tous les éléments nécessaires sont présents)
+  if (editBtn && pTxt && textarea && saveBtn && cancelBtn) {
+    editBtn.addEventListener("click", function() {
+      // Passer en mode édition
+      pTxt.classList.add("d-none");
+      editBtn.classList.add("d-none");
+      textarea.classList.remove("d-none");
+      saveBtn.classList.remove("d-none");
+      cancelBtn.classList.remove("d-none");
+      textarea.focus();
+    });
+    
+    // Listener pour annuler
+    cancelBtn.addEventListener("click", function() {
+      // Revenir au mode affichage
+      textarea.value = dream; // Restaurer la valeur originale
+      pTxt.classList.remove("d-none");
+      editBtn.classList.remove("d-none");
+      textarea.classList.add("d-none");
+      saveBtn.classList.add("d-none");
+      cancelBtn.classList.add("d-none");
+    });
+    
+    // Listener pour sauvegarder
+    saveBtn.addEventListener("click", function() {
+      var newContent = textarea.value.trim();
+      
+      if (!newContent) {
+        alert("Le message ne peut pas être vide");
+        return;
+      }
+      
+      if (newContent === dream) {
+        // Pas de changement, juste annuler
+        cancelBtn.click();
+        return;
+      }
+      
+      // Appeler l'API pour mettre à jour
+      if (window.SupabaseClient && window.SupabaseClient.updateMessage) {
+        window.SupabaseClient.updateMessage(id, newContent)
+          .then(function(success) {
+            if (success) {
+              // Mettre à jour le contenu affiché
+              pTxt.textContent = newContent;
+              dream = newContent; // Mettre à jour la variable locale
+              
+              // Revenir au mode affichage
+              pTxt.classList.remove("d-none");
+              editBtn.classList.remove("d-none");
+              textarea.classList.add("d-none");
+              saveBtn.classList.add("d-none");
+              cancelBtn.classList.add("d-none");
+              
+              console.log('Message mis à jour avec succès');
+            } else {
+              alert('Erreur lors de la mise à jour du message');
+            }
+          })
+          .catch(function(error) {
+            console.error('Erreur lors de la mise à jour:', error);
+            alert('Erreur lors de la mise à jour du message');
+          });
+      }
+    });
+  }
+  
   divList.appendChild(messageRow);
 
-  // Adding a listener
-  delBut.addEventListener("click", delFunction, false);
+  // Adding a listener pour supprimer
+  if (delBut) {
+    delBut.addEventListener("click", delFunction, false);
+  }
 };
 
 // listen for the form to be submitted and add a new dream when it is
@@ -217,19 +322,19 @@ if (dreamsForm) {
     return;
   }
 
-  // Détecter le client depuis l'URL
-  var client = getClientFromURL();
+  // Détecter le board depuis l'URL
+  var board = getBoardFromURL();
   
   console.log('Ajout de message en cours');
   
-  // Utiliser Supabase si disponible
+  // Utiliser Hygraph si disponible
   if (window.SupabaseClient && window.SupabaseClient.addMessage) {
-    console.log('Utilisation de Supabase pour ajouter le message');
-    // Utiliser Supabase
-    window.SupabaseClient.addMessage(messageContent, client)
+    console.log('Utilisation de Hygraph pour ajouter le message');
+    // Utiliser Hygraph
+    window.SupabaseClient.addMessage(messageContent, board)
       .then(function(success) {
         if (success) {
-          console.log('Message ajouté avec succès via Supabase');
+          console.log('Message ajouté avec succès via Hygraph');
           // Vider le champ de saisie
           dreamInput.value = "";
           dreamInput.focus();
@@ -237,14 +342,14 @@ if (dreamsForm) {
           // Afficher le popup de confirmation
           showSuccessPopup();
         } else {
-          console.error('Erreur lors de l\'ajout du message via Supabase');
+          console.error('Erreur lors de l\'ajout du message via Hygraph');
         }
       })
       .catch(function(error) {
-        console.error('Erreur Supabase lors de l\'ajout:', error);
+        console.error('Erreur Hygraph lors de l\'ajout:', error);
       });
   } else {
-    console.error('Supabase non disponible');
+    console.error('Hygraph non disponible');
   }
   };
 }
@@ -255,32 +360,32 @@ if (clearButton) {
   clearButton.addEventListener("click", function(event) {
   event.preventDefault();
   
-  // Détecter le client depuis l'URL
-  var client = getClientFromURL();
+  // Détecter le board depuis l'URL
+  var board = getBoardFromURL();
   
   console.log('Suppression de tous les messages en cours');
   
-  // Utiliser Supabase si disponible
+  // Utiliser Hygraph si disponible
   if (window.SupabaseClient && window.SupabaseClient.deleteAllMessages) {
-    console.log('Utilisation de Supabase pour supprimer tous les messages');
+    console.log('Utilisation de Hygraph pour supprimer tous les messages');
     
-    window.SupabaseClient.deleteAllMessages(client)
+    window.SupabaseClient.deleteAllMessages(board)
       .then(function(success) {
         if (success) {
-          console.log('Tous les messages supprimés avec succès via Supabase');
+          console.log('Tous les messages supprimés avec succès via Hygraph');
           // Vider la liste dans le DOM
           if (dreamsList) {
             dreamsList.innerHTML = "";
           }
         } else {
-          console.error('Erreur lors de la suppression de tous les messages via Supabase');
+          console.error('Erreur lors de la suppression de tous les messages via Hygraph');
         }
       })
       .catch(function(error) {
-        console.error('Erreur Supabase lors de la suppression de tous les messages:', error);
+        console.error('Erreur Hygraph lors de la suppression de tous les messages:', error);
       });
   } else {
-    console.error('Supabase non disponible pour la suppression de tous les messages');
+    console.error('Hygraph non disponible pour la suppression de tous les messages');
   }
 });
 }
@@ -291,27 +396,27 @@ var delFunction = function() {
   
   console.log('Suppression du message en cours');
   
-  // Utiliser Supabase si disponible
+  // Utiliser Hygraph si disponible
   if (window.SupabaseClient && window.SupabaseClient.deleteMessage) {
-    console.log('Utilisation de Supabase pour supprimer le message');
+    console.log('Utilisation de Hygraph pour supprimer le message');
     
     window.SupabaseClient.deleteMessage(messageId)
       .then(function(success) {
         if (success) {
-          console.log('Message supprimé avec succès via Supabase');
+          console.log('Message supprimé avec succès via Hygraph');
           // Supprimer l'élément du DOM
           if (dreamsList && divASupp) {
             dreamsList.removeChild(divASupp);
           }
         } else {
-          console.error('Erreur lors de la suppression du message via Supabase');
+          console.error('Erreur lors de la suppression du message via Hygraph');
         }
       })
       .catch(function(error) {
-        console.error('Erreur Supabase lors de la suppression:', error);
+        console.error('Erreur Hygraph lors de la suppression:', error);
       });
   } else {
-    console.error('Supabase non disponible pour la suppression');
+    console.error('Hygraph non disponible pour la suppression');
   }
 };
 
@@ -337,10 +442,8 @@ function wordWrap(str, charMax) {
   return arr;
 }
 
-// Ne charger les messages automatiquement que sur la page Solari
-if (isSolariPage) {
-  getMessageList();
-}
+// Ne pas charger les messages automatiquement ici
+// Ils sont chargés via loadBoard() dans index.html après 2 secondes
 
 // Fonction pour afficher le popup de confirmation
 function showSuccessPopup() {
